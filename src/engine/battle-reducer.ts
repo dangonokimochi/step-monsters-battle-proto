@@ -143,7 +143,7 @@ function handleSelectSkill(state: BattleState, skillId: string): BattleState {
   if (!skill) return state;
   if (unit.mp < skill.mpCost) return state;
 
-  const targets = getAttackTargets(unit, skill, state.units);
+  const targets = getAttackTargets(unit, skill, state.units, state.grid);
   if (targets.length === 0) return state;
 
   // 対象が1体なら即実行
