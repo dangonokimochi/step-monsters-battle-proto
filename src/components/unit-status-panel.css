@@ -42,8 +42,9 @@
   margin-bottom: 4px;
 }
 
-.status-emoji {
-  font-size: 20px;
+.status-sprite {
+  display: block;
+  image-rendering: pixelated;
 }
 
 .status-name {
@@ -124,8 +125,9 @@
     margin-bottom: 2px;
   }
 
-  .status-emoji {
-    font-size: 16px;
+  .status-sprite {
+    width: 20px !important;
+    height: 20px !important;
   }
 
   .status-name {

@@ -91,9 +91,8 @@
   gap: 2px;
 }
 
-.unit-emoji {
-  font-size: 28px;
-  line-height: 1;
+.unit-sprite {
+  display: block;
 }
 
 /* 味方・敵の区別 */
@@ -104,8 +103,8 @@
   padding: 2px 4px;
 }
 
-.unit-player .unit-emoji {
-  filter: drop-shadow(0 0 3px #4a9eff);
+.unit-player .unit-sprite {
+  filter: drop-shadow(0 0 3px #4a9eff) drop-shadow(0 0 6px rgba(74, 158, 255, 0.4));
 }
 
 .unit-enemy {
@@ -115,8 +114,8 @@
   padding: 2px 4px;
 }
 
-.unit-enemy .unit-emoji {
-  filter: drop-shadow(0 0 3px #ff4a4a);
+.unit-enemy .unit-sprite {
+  filter: drop-shadow(0 0 3px #ff4a4a) drop-shadow(0 0 6px rgba(255, 74, 74, 0.4));
 }
 
 /* HPバー */
@@ -189,8 +188,9 @@
     height: calc((100vw - 24px) / 8);
   }
 
-  .unit-emoji {
-    font-size: 20px;
+  .unit-sprite {
+    width: 28px !important;
+    height: 28px !important;
   }
 
   .unit-hp-bar {
