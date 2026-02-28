@@ -1,5 +1,4 @@
 import type { BattleUnit } from '../types';
-import { PixelSprite } from './pixel-sprite';
 import './unit-status-panel.css';
 
 interface UnitStatusPanelProps {
@@ -25,12 +24,7 @@ export function UnitStatusPanel({ units, team, label }: UnitStatusPanelProps) {
             className={`status-card ${!unit.isAlive ? 'status-dead' : ''}`}
           >
             <div className="status-header">
-              <PixelSprite
-                speciesId={unit.speciesId}
-                size={24}
-                flip={unit.team === 'enemy'}
-                className="status-sprite"
-              />
+              <span className="status-emoji">{unit.emoji}</span>
               <span className="status-name">{unit.name}</span>
             </div>
             <div className="status-bars">

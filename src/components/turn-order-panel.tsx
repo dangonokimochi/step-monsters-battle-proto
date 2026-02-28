@@ -1,5 +1,4 @@
 import type { BattleState, BattleUnit } from '../types';
-import { PixelSprite } from './pixel-sprite';
 import './turn-order-panel.css';
 
 interface TurnOrderPanelProps {
@@ -30,12 +29,7 @@ export function TurnOrderPanel({ battleState }: TurnOrderPanelProps) {
               key={unitId}
               className={`turn-item ${isCurrent ? 'turn-current' : ''} ${isDone ? 'turn-done' : ''} ${!unit.isAlive ? 'turn-dead' : ''}`}
             >
-              <PixelSprite
-                speciesId={unit.speciesId}
-                size={22}
-                flip={unit.team === 'enemy'}
-                className="turn-sprite"
-              />
+              <span className="turn-emoji">{unit.emoji}</span>
               <span
                 className={`turn-name ${unit.team === 'player' ? 'name-player' : 'name-enemy'}`}
               >

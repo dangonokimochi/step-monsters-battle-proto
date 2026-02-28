@@ -42,9 +42,8 @@
   margin-bottom: 4px;
 }
 
-.status-sprite {
-  display: block;
-  image-rendering: pixelated;
+.status-emoji {
+  font-size: 20px;
 }
 
 .status-name {

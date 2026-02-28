@@ -46,9 +46,8 @@
   text-decoration: line-through;
 }
 
-.turn-sprite {
-  display: block;
-  image-rendering: pixelated;
+.turn-emoji {
+  font-size: 18px;
 }
 
 .turn-name {
