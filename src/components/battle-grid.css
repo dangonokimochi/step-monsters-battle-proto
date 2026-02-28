@@ -30,7 +30,7 @@
 
 /* 地形色（テクスチャの下地・フォールバック） */
 .cell-plain {
-  background: #3d4a2e;
+  background: #2e3328;
 }
 
 .cell-rock {
@@ -66,16 +66,32 @@
 
 /* 移動可能マスのハイライト */
 .cell-movable {
-  background-color: rgba(74, 158, 255, 0.25) !important;
   cursor: pointer;
 }
 
-.movable-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: rgba(74, 158, 255, 0.6);
+.cell-movable::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border: 2px solid rgba(74, 158, 255, 0.7);
+  border-radius: 3px;
+  background: rgba(74, 158, 255, 0.15);
   z-index: 1;
+  animation: movable-pulse 1.5s ease-in-out infinite;
+}
+
+.movable-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(74, 158, 255, 0.8);
+  z-index: 2;
+  box-shadow: 0 0 6px rgba(74, 158, 255, 0.6);
+}
+
+@keyframes movable-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
 /* 攻撃対象ハイライト */
@@ -256,8 +272,13 @@
   }
 
   .movable-dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
+  }
+
+  .cell-movable::after {
+    inset: 1px;
+    border-width: 1px;
   }
 
   .damage-popup {

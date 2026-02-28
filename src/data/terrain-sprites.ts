@@ -36,9 +36,8 @@ const terrainDefs: Record<string, TerrainSpriteDef> = {
   // 平地 - 控えめな草地。モンスターの邪魔にならないよう色差を極小に
   plain: {
     palette: {
-      a: '#3a4530', // ベース暗
-      b: '#3d4a33', // ベース
-      c: '#404e36', // わずかに明るい
+      a: '#2e3328', // ベース暗
+      b: '#303529', // ベース
     },
     frames: [
       [
