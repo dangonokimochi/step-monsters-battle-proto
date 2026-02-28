@@ -1,0 +1,105 @@
+.status-panel {
+  background: #2a2a2a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.status-title {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  text-align: center;
+}
+
+.title-player {
+  color: #6ab4ff;
+}
+
+.title-enemy {
+  color: #ff6a6a;
+}
+
+.status-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.status-card {
+  background: #333;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.status-dead {
+  opacity: 0.4;
+}
+
+.status-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.status-emoji {
+  font-size: 20px;
+}
+
+.status-name {
+  font-size: 14px;
+  font-weight: bold;
+  color: #eee;
+}
+
+.status-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bar-label {
+  font-size: 10px;
+  color: #999;
+  width: 20px;
+}
+
+.bar-track {
+  flex: 1;
+  height: 6px;
+  background: #222;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  transition: width 0.3s;
+}
+
+.bar-hp {
+  background: #4caf50;
+}
+
+.bar-mp {
+  background: #2196f3;
+}
+
+.bar-value {
+  font-size: 10px;
+  color: #aaa;
+  min-width: 50px;
+  text-align: right;
+}
+
+.status-stats {
+  font-size: 10px;
+  color: #888;
+  margin-top: 4px;
+}

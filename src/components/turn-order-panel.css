@@ -1,0 +1,68 @@
+.turn-order-panel {
+  background: #2a2a2a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 12px;
+  min-width: 180px;
+}
+
+.panel-title {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #ccc;
+  text-align: center;
+}
+
+.turn-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.turn-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 13px;
+  background: #333;
+}
+
+.turn-current {
+  background: #4a3a00;
+  outline: 2px solid #ffd700;
+}
+
+.turn-done {
+  opacity: 0.5;
+}
+
+.turn-dead {
+  opacity: 0.3;
+  text-decoration: line-through;
+}
+
+.turn-emoji {
+  font-size: 18px;
+}
+
+.turn-name {
+  flex: 1;
+}
+
+.name-player {
+  color: #6ab4ff;
+}
+
+.name-enemy {
+  color: #ff6a6a;
+}
+
+.turn-spd {
+  color: #888;
+  font-size: 11px;
+}
