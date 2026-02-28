@@ -2,12 +2,14 @@ import type { BattleState, BattleLog, Position, Skill } from '../types';
 import { calcMovablePositions } from './movement';
 import { calcTurnOrder } from './battle-setup';
 import { getAttackTargets, executeAttack } from './combat';
+import { decideEnemyAction } from './enemy-ai';
 
 // === アクション定義 ===
 export type BattleAction =
   | { type: 'SELECT_CELL'; position: Position }
   | { type: 'SKIP_MOVE' }
   | { type: 'SELECT_SKILL'; skillId: string }
+  | { type: 'ENEMY_AI_TURN' }
   | { type: 'CANCEL_SKILL' }
   | { type: 'WAIT' }
   | { type: 'START_TURN' };
@@ -293,6 +295,45 @@ function handleWait(state: BattleState): BattleState {
   return advanceTurn(state);
 }
 
+// 敵AIターン
+function handleEnemyAI(state: BattleState): BattleState {
+  if (state.phase !== 'battle') return state;
+
+  const unit = getCurrentUnit(state);
+  if (!unit || !unit.isAlive || unit.team !== 'enemy') {
+    return advanceTurn(state);
+  }
+
+  const decision = decideEnemyAction(unit, state);
+
+  if (!decision) {
+    // 行動できない場合は待機
+    const logged = addLog(state, `${unit.name}は待機した`, 'info');
+    return advanceTurn(logged);
+  }
+
+  let currentState = state;
+
+  // 移動
+  if (decision.moveTarget) {
+    currentState = moveUnit(currentState, decision.moveTarget);
+  }
+
+  // 攻撃対象がいない場合（移動のみ）
+  if (!decision.attackTarget) {
+    const logged = addLog(currentState, `${unit.name}は移動した`, 'info');
+    return advanceTurn(logged);
+  }
+
+  // 攻撃
+  return executeSkill(
+    currentState,
+    unit.id,
+    decision.attackTarget,
+    decision.skill,
+  );
+}
+
 export function battleReducer(
   state: BattleState,
   action: BattleAction,
@@ -308,6 +349,8 @@ export function battleReducer(
       return handleCancelSkill(state);
     case 'WAIT':
       return handleWait(state);
+    case 'ENEMY_AI_TURN':
+      return handleEnemyAI(state);
     case 'START_TURN':
       return startTurn(state);
     default:

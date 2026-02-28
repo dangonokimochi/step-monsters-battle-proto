@@ -47,15 +47,15 @@ function App() {
     window.location.reload();
   };
 
-  // 敵ターンは自動で待機（Step 6でAI実装予定）
+  // 敵AIターンを自動実行
   useEffect(() => {
     if (battleState.phase !== 'battle') return;
     const currentId = battleState.turnOrder[battleState.currentTurnIndex];
     const currentUnit = battleState.units.find((u) => u.id === currentId);
     if (currentUnit && currentUnit.team === 'enemy' && currentUnit.isAlive) {
       const timer = setTimeout(() => {
-        dispatch({ type: 'WAIT' });
-      }, 500);
+        dispatch({ type: 'ENEMY_AI_TURN' });
+      }, 600);
       return () => clearTimeout(timer);
     }
   }, [battleState.currentTurnIndex, battleState.round, battleState.phase]);
