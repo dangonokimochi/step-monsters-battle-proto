@@ -94,6 +94,11 @@ export interface GridCell {
 
 export type Grid = GridCell[][];
 
+// === ターンフェーズ ===
+// move: 移動フェーズ（任意）
+// action: 行動フェーズ（通常攻撃・スキル・待機）
+export type TurnPhase = 'move' | 'action';
+
 // === 戦闘状態 ===
 export interface BattleState {
   grid: Grid;
@@ -102,5 +107,9 @@ export interface BattleState {
   currentTurnIndex: number;
   round: number;
   phase: 'placement' | 'battle' | 'result';
+  turnPhase: TurnPhase;
+  selectedUnitId: string | null;
+  movablePositions: Position[]; // 移動可能なマスのリスト
+  hasMoved: boolean; // 今ターンで移動済みか
   result: 'none' | 'win' | 'lose';
 }

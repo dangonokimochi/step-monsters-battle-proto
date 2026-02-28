@@ -1,12 +1,12 @@
-import type { BattleState, BattleUnit, TerrainType } from '../types';
+import type { BattleState, BattleUnit, Position, TerrainType } from '../types';
 import { GRID_SIZE } from '../types';
 import './battle-grid.css';
 
 interface BattleGridProps {
   battleState: BattleState;
+  onCellClick: (position: Position) => void;
 }
 
-// 地形に対応する背景色クラス
 function terrainClass(terrain: TerrainType): string {
   switch (terrain) {
     case 'rock':
@@ -22,7 +22,6 @@ function terrainClass(terrain: TerrainType): string {
   }
 }
 
-// 地形の記号表示
 function terrainLabel(terrain: TerrainType): string {
   switch (terrain) {
     case 'rock':
@@ -46,14 +45,22 @@ function findUnit(
   return units.find((u) => u.id === unitId);
 }
 
-// 現在行動中のユニットID
 function getCurrentUnitId(state: BattleState): string | null {
   if (state.phase !== 'battle') return null;
   return state.turnOrder[state.currentTurnIndex] ?? null;
 }
 
-export function BattleGrid({ battleState }: BattleGridProps) {
+function posKey(pos: Position): string {
+  return `${pos.row},${pos.col}`;
+}
+
+export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
   const currentUnitId = getCurrentUnitId(battleState);
+
+  // 移動可能マスをSetに
+  const movableSet = new Set(
+    battleState.movablePositions.map((p) => posKey(p)),
+  );
 
   return (
     <div className="grid-container">
@@ -64,11 +71,22 @@ export function BattleGrid({ battleState }: BattleGridProps) {
               const cell = battleState.grid[row][col];
               const unit = findUnit(battleState.units, cell.unitId);
               const isCurrentUnit = unit?.id === currentUnitId;
+              const isMovable = movableSet.has(posKey({ row, col }));
+
+              const classes = [
+                'cell',
+                terrainClass(cell.terrain),
+                isCurrentUnit ? 'cell-active' : '',
+                isMovable ? 'cell-movable' : '',
+              ]
+                .filter(Boolean)
+                .join(' ');
 
               return (
                 <div
-                  className={`cell ${terrainClass(cell.terrain)} ${isCurrentUnit ? 'cell-active' : ''}`}
+                  className={classes}
                   key={`${row}-${col}`}
+                  onClick={() => onCellClick({ row, col })}
                 >
                   {unit && unit.isAlive ? (
                     <div
@@ -88,6 +106,9 @@ export function BattleGrid({ battleState }: BattleGridProps) {
                     <span className="terrain-label">
                       {terrainLabel(cell.terrain)}
                     </span>
+                  )}
+                  {isMovable && !unit && (
+                    <div className="movable-dot" />
                   )}
                 </div>
               );

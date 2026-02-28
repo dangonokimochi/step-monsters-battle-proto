@@ -1,0 +1,67 @@
+.action-panel {
+  background: #2a2a2a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 300px;
+}
+
+.action-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-unit-emoji {
+  font-size: 24px;
+}
+
+.action-unit-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #6ab4ff;
+}
+
+.action-phase-label {
+  font-size: 12px;
+  color: #ffd700;
+  background: #3a3000;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: auto;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  border: 1px solid #666;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  flex: 1;
+}
+
+.btn-skip {
+  background: #3a4a5a;
+  color: #aad4ff;
+}
+
+.btn-skip:hover {
+  background: #4a5a6a;
+}
+
+.btn-wait {
+  background: #4a4a3a;
+  color: #ffd700;
+}
+
+.btn-wait:hover {
+  background: #5a5a4a;
+}

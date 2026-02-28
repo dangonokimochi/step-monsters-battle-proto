@@ -21,18 +21,9 @@
   color: #ffd700;
 }
 
-.restart-btn {
-  padding: 6px 16px;
-  background: #444;
-  color: #eee;
-  border: 1px solid #666;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-.restart-btn:hover {
-  background: #555;
+.round-label {
+  font-size: 14px;
+  color: #aaa;
 }
 
 .app-main {

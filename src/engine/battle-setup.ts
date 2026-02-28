@@ -145,6 +145,10 @@ export function initBattle(
     currentTurnIndex: 0,
     round: 1,
     phase: 'battle',
+    turnPhase: 'move' as const,
+    selectedUnitId: turnOrder[0] ?? null,
+    movablePositions: [],
+    hasMoved: false,
     result: 'none',
   };
 }
