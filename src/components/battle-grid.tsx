@@ -1,6 +1,7 @@
 import type { BattleState, BattleUnit, Position, TerrainType, DamagePopup } from '../types';
 import { GRID_SIZE } from '../types';
 import { PixelSprite } from './pixel-sprite';
+import { TerrainTile } from './terrain-tile';
 import './battle-grid.css';
 
 function popupClass(type: DamagePopup['type']): string {
@@ -32,20 +33,6 @@ function terrainClass(terrain: TerrainType): string {
   }
 }
 
-function terrainLabel(terrain: TerrainType): string {
-  switch (terrain) {
-    case 'rock':
-      return '🪨';
-    case 'water':
-      return '💧';
-    case 'bush':
-      return '🌿';
-    case 'hill':
-      return '⛰️';
-    default:
-      return '';
-  }
-}
 
 function findUnit(
   units: BattleUnit[],
@@ -106,7 +93,9 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
                   key={`${row}-${col}`}
                   onClick={() => onCellClick({ row, col })}
                 >
-                  {unit && unit.isAlive ? (
+                  {/* 地形タイルは常に背景として描画 */}
+                  <TerrainTile terrain={cell.terrain} cellSize={64} />
+                  {unit && unit.isAlive && (
                     <div
                       className={`unit ${unit.team === 'player' ? 'unit-player' : 'unit-enemy'}`}
                     >
@@ -125,10 +114,6 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
                         />
                       </div>
                     </div>
-                  ) : (
-                    <span className="terrain-label">
-                      {terrainLabel(cell.terrain)}
-                    </span>
                   )}
                   {isMovable && !unit && (
                     <div className="movable-dot" />

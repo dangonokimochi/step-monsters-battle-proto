@@ -28,25 +28,33 @@
   transition: background-color 0.15s;
 }
 
-/* 地形色 */
+/* 地形色（テクスチャの下地・フォールバック） */
 .cell-plain {
-  background: #3a3a3a;
+  background: #3d4a2e;
 }
 
 .cell-rock {
-  background: #5a5050;
+  background: #3a3535;
 }
 
 .cell-water {
-  background: #2a4a6a;
+  background: #1a3555;
 }
 
 .cell-bush {
-  background: #2a5a2a;
+  background: #1e3a1e;
 }
 
 .cell-hill {
-  background: #6a5a3a;
+  background: #3a3020;
+}
+
+/* 地形ピクセルアートcanvas */
+.terrain-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
 }
 
 /* 現在行動中のユニットのマスハイライト */
@@ -67,6 +75,7 @@
   height: 12px;
   border-radius: 50%;
   background: rgba(74, 158, 255, 0.6);
+  z-index: 1;
 }
 
 /* 攻撃対象ハイライト */
@@ -77,18 +86,13 @@
   outline-offset: -2px;
 }
 
-/* 地形ラベル */
-.terrain-label {
-  font-size: 20px;
-  opacity: 0.6;
-}
-
 /* ユニット */
 .unit {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
+  z-index: 1;
 }
 
 .unit-sprite {
@@ -246,8 +250,9 @@
     height: 3px;
   }
 
-  .terrain-label {
-    font-size: 14px;
+  .terrain-canvas {
+    width: 100% !important;
+    height: 100% !important;
   }
 
   .movable-dot {
