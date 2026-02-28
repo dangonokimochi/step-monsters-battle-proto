@@ -3,6 +3,8 @@ import { BattleGrid } from './components/battle-grid';
 import { TurnOrderPanel } from './components/turn-order-panel';
 import { UnitStatusPanel } from './components/unit-status-panel';
 import { ActionPanel } from './components/action-panel';
+import { BattleLogPanel } from './components/battle-log';
+import { BattleResult } from './components/battle-result';
 import { playerMonsters, enemyMonsters } from './data/monsters';
 import { initBattle } from './engine/battle-setup';
 import { battleReducer } from './engine/battle-reducer';
@@ -16,7 +18,6 @@ function App() {
     () => initBattle(playerMonsters, enemyMonsters),
   );
 
-  // 初回ターン開始
   useEffect(() => {
     dispatch({ type: 'START_TURN' });
   }, []);
@@ -29,12 +30,26 @@ function App() {
     dispatch({ type: 'SKIP_MOVE' });
   };
 
+  const handleSelectSkill = (skillId: string) => {
+    dispatch({ type: 'SELECT_SKILL', skillId });
+  };
+
+  const handleCancelSkill = () => {
+    dispatch({ type: 'CANCEL_SKILL' });
+  };
+
   const handleWait = () => {
     dispatch({ type: 'WAIT' });
   };
 
+  const handleRestart = () => {
+    // useReducerをリセットする代わりにページリロード
+    window.location.reload();
+  };
+
   // 敵ターンは自動で待機（Step 6でAI実装予定）
   useEffect(() => {
+    if (battleState.phase !== 'battle') return;
     const currentId = battleState.turnOrder[battleState.currentTurnIndex];
     const currentUnit = battleState.units.find((u) => u.id === currentId);
     if (currentUnit && currentUnit.team === 'enemy' && currentUnit.isAlive) {
@@ -43,7 +58,7 @@ function App() {
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [battleState.currentTurnIndex, battleState.round]);
+  }, [battleState.currentTurnIndex, battleState.round, battleState.phase]);
 
   return (
     <div className="app">
@@ -67,8 +82,11 @@ function App() {
           <ActionPanel
             battleState={battleState}
             onSkipMove={handleSkipMove}
+            onSelectSkill={handleSelectSkill}
+            onCancelSkill={handleCancelSkill}
             onWait={handleWait}
           />
+          <BattleLogPanel logs={battleState.battleLog} />
         </div>
         <aside className="side-panel right-panel">
           <TurnOrderPanel battleState={battleState} />
@@ -79,6 +97,7 @@ function App() {
           />
         </aside>
       </main>
+      <BattleResult battleState={battleState} onRestart={handleRestart} />
     </div>
   );
 }

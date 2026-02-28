@@ -148,7 +148,11 @@ export function initBattle(
     turnPhase: 'move' as const,
     selectedUnitId: turnOrder[0] ?? null,
     movablePositions: [],
+    attackableUnitIds: [],
+    selectedSkillId: null,
     hasMoved: false,
+    battleLog: [],
+    logCounter: 0,
     result: 'none',
   };
 }

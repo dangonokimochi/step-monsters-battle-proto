@@ -1,11 +1,14 @@
-import type { BattleState, Position } from '../types';
+import type { BattleState, BattleLog, Position, Skill } from '../types';
 import { calcMovablePositions } from './movement';
 import { calcTurnOrder } from './battle-setup';
+import { getAttackTargets, executeAttack } from './combat';
 
 // === アクション定義 ===
 export type BattleAction =
   | { type: 'SELECT_CELL'; position: Position }
   | { type: 'SKIP_MOVE' }
+  | { type: 'SELECT_SKILL'; skillId: string }
+  | { type: 'CANCEL_SKILL' }
   | { type: 'WAIT' }
   | { type: 'START_TURN' };
 
@@ -23,11 +26,41 @@ function posKey(pos: Position): string {
   return `${pos.row},${pos.col}`;
 }
 
-// ターン開始処理：移動可能範囲を計算
+function addLog(
+  state: BattleState,
+  message: string,
+  type: BattleLog['type'],
+): BattleState {
+  const id = state.logCounter + 1;
+  return {
+    ...state,
+    battleLog: [...state.battleLog.slice(-19), { id, message, type }],
+    logCounter: id,
+  };
+}
+
+// 勝敗チェック
+function checkResult(state: BattleState): BattleState {
+  const playerAlive = state.units.some(
+    (u) => u.team === 'player' && u.isAlive,
+  );
+  const enemyAlive = state.units.some(
+    (u) => u.team === 'enemy' && u.isAlive,
+  );
+
+  if (!enemyAlive) {
+    return { ...state, phase: 'result', result: 'win' };
+  }
+  if (!playerAlive) {
+    return { ...state, phase: 'result', result: 'lose' };
+  }
+  return state;
+}
+
+// ターン開始処理
 function startTurn(state: BattleState): BattleState {
   const unit = getCurrentUnit(state);
   if (!unit || !unit.isAlive) {
-    // 死亡ユニットはスキップ
     return advanceTurn(state);
   }
 
@@ -38,20 +71,24 @@ function startTurn(state: BattleState): BattleState {
     turnPhase: 'move',
     selectedUnitId: unit.id,
     movablePositions: movable,
+    attackableUnitIds: [],
+    selectedSkillId: null,
     hasMoved: false,
   };
 }
 
-// 次のターンへ進む
+// 次のターンへ
 function advanceTurn(state: BattleState): BattleState {
+  // 勝敗チェック
+  const checked = checkResult(state);
+  if (checked.phase === 'result') return checked;
+
   let nextIndex = state.currentTurnIndex + 1;
   let nextRound = state.round;
 
-  // 全員行動済みなら次のラウンド
   if (nextIndex >= state.turnOrder.length) {
     nextIndex = 0;
     nextRound += 1;
-    // ターン順を再計算
     const newOrder = calcTurnOrder(state.units);
     return startTurn({
       ...state,
@@ -72,18 +109,15 @@ function moveUnit(state: BattleState, target: Position): BattleState {
   const unit = getCurrentUnit(state);
   if (!unit) return state;
 
-  // 移動可能チェック
   const isMovable = state.movablePositions.some(
     (p) => posKey(p) === posKey(target),
   );
   if (!isMovable) return state;
 
-  // グリッドを更新
   const newGrid = state.grid.map((row) => row.map((cell) => ({ ...cell })));
   newGrid[unit.position.row][unit.position.col].unitId = null;
   newGrid[target.row][target.col].unitId = unit.id;
 
-  // ユニット位置を更新
   const newUnits = state.units.map((u) =>
     u.id === unit.id ? { ...u, position: { ...target } } : u,
   );
@@ -94,22 +128,126 @@ function moveUnit(state: BattleState, target: Position): BattleState {
     units: newUnits,
     turnPhase: 'action',
     movablePositions: [],
+    attackableUnitIds: [],
+    selectedSkillId: null,
     hasMoved: true,
   };
 }
 
-// セル選択時の処理
-function handleSelectCell(state: BattleState, position: Position): BattleState {
+// スキル選択 → 対象選択フェーズへ
+function handleSelectSkill(state: BattleState, skillId: string): BattleState {
+  const unit = getCurrentUnit(state);
+  if (!unit) return state;
+
+  const skill = unit.skills.find((s) => s.id === skillId);
+  if (!skill) return state;
+  if (unit.mp < skill.mpCost) return state;
+
+  const targets = getAttackTargets(unit, skill, state.units);
+  if (targets.length === 0) return state;
+
+  // 対象が1体なら即実行
+  if (targets.length === 1) {
+    return executeSkill(state, unit.id, targets[0].id, skill);
+  }
+
+  return {
+    ...state,
+    turnPhase: 'select_target',
+    selectedSkillId: skillId,
+    attackableUnitIds: targets.map((t) => t.id),
+  };
+}
+
+// スキル実行（ダメージ適用）
+function executeSkill(
+  state: BattleState,
+  attackerId: string,
+  targetId: string,
+  skill: Skill,
+): BattleState {
+  const attacker = state.units.find((u) => u.id === attackerId);
+  const target = state.units.find((u) => u.id === targetId);
+  if (!attacker || !target) return state;
+
+  const result = executeAttack(attacker, target, skill);
+
+  let newState = state;
+
+  // MP消費
+  let newUnits = newState.units.map((u) =>
+    u.id === attackerId ? { ...u, mp: u.mp - skill.mpCost } : u,
+  );
+
+  if (result.isHeal) {
+    // 回復
+    newUnits = newUnits.map((u) =>
+      u.id === targetId
+        ? { ...u, hp: Math.min(u.maxHp, u.hp + result.damage) }
+        : u,
+    );
+    newState = addLog(
+      { ...newState, units: newUnits },
+      `${attacker.name}の${skill.name}! ${target.name}のHPが${result.damage}回復!`,
+      'heal',
+    );
+  } else if (result.evaded) {
+    newState = addLog(
+      { ...newState, units: newUnits },
+      `${attacker.name}の${skill.name}! ${target.name}は回避した!`,
+      'miss',
+    );
+  } else {
+    // ダメージ
+    newUnits = newUnits.map((u) => {
+      if (u.id !== targetId) return u;
+      const newHp = Math.max(0, u.hp - result.damage);
+      return { ...u, hp: newHp, isAlive: newHp > 0 };
+    });
+
+    newState = addLog(
+      { ...newState, units: newUnits },
+      `${attacker.name}の${skill.name}! ${target.name}に${result.damage}ダメージ!`,
+      'damage',
+    );
+
+    if (result.targetKilled) {
+      // グリッドから除去
+      const deadUnit = newUnits.find((u) => u.id === targetId)!;
+      const newGrid = newState.grid.map((row) =>
+        row.map((cell) => ({ ...cell })),
+      );
+      newGrid[deadUnit.position.row][deadUnit.position.col].unitId = null;
+
+      newState = addLog(
+        { ...newState, units: newUnits, grid: newGrid },
+        `${target.name}は倒れた!`,
+        'kill',
+      );
+    }
+  }
+
+  // ターン終了
+  return advanceTurn({
+    ...newState,
+    units: newState.units, // addLogで更新済み
+    attackableUnitIds: [],
+    selectedSkillId: null,
+  });
+}
+
+// セル選択
+function handleSelectCell(
+  state: BattleState,
+  position: Position,
+): BattleState {
   if (state.phase !== 'battle') return state;
 
   const unit = getCurrentUnit(state);
   if (!unit) return state;
-
-  // 味方ターンでなければ無視（敵AIは後のステップ）
   if (unit.team !== 'player') return state;
 
   if (state.turnPhase === 'move') {
-    // 移動可能なマスをタップした場合
     const isMovable = state.movablePositions.some(
       (p) => posKey(p) === posKey(position),
     );
@@ -118,19 +256,39 @@ function handleSelectCell(state: BattleState, position: Position): BattleState {
     }
   }
 
+  if (state.turnPhase === 'select_target') {
+    // 攻撃対象のマスをタップ
+    const cellUnitId = state.grid[position.row][position.col].unitId;
+    if (cellUnitId && state.attackableUnitIds.includes(cellUnitId)) {
+      const skill = unit.skills.find((s) => s.id === state.selectedSkillId);
+      if (skill) {
+        return executeSkill(state, unit.id, cellUnitId, skill);
+      }
+    }
+  }
+
   return state;
 }
 
-// 移動スキップ → 行動フェーズへ
 function handleSkipMove(state: BattleState): BattleState {
   return {
     ...state,
     turnPhase: 'action',
     movablePositions: [],
+    attackableUnitIds: [],
+    selectedSkillId: null,
   };
 }
 
-// 待機 → 次のターンへ
+function handleCancelSkill(state: BattleState): BattleState {
+  return {
+    ...state,
+    turnPhase: 'action',
+    attackableUnitIds: [],
+    selectedSkillId: null,
+  };
+}
+
 function handleWait(state: BattleState): BattleState {
   return advanceTurn(state);
 }
@@ -144,6 +302,10 @@ export function battleReducer(
       return handleSelectCell(state, action.position);
     case 'SKIP_MOVE':
       return handleSkipMove(state);
+    case 'SELECT_SKILL':
+      return handleSelectSkill(state, action.skillId);
+    case 'CANCEL_SKILL':
+      return handleCancelSkill(state);
     case 'WAIT':
       return handleWait(state);
     case 'START_TURN':

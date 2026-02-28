@@ -65,3 +65,63 @@
 .btn-wait:hover {
   background: #5a5a4a;
 }
+
+/* スキルリスト */
+.skill-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skill-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #3a3a4a;
+  color: #eee;
+  border: 1px solid #666;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+}
+
+.skill-btn:hover:not(:disabled) {
+  background: #4a4a5a;
+  border-color: #88f;
+}
+
+.skill-normal {
+  border-color: #555;
+}
+
+.skill-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.skill-name {
+  font-weight: bold;
+}
+
+.skill-info {
+  font-size: 11px;
+  color: #aaa;
+}
+
+/* 対象選択 */
+.target-hint {
+  font-size: 13px;
+  color: #ff6a6a;
+  flex: 1;
+}
+
+.btn-cancel {
+  background: #5a3a3a;
+  color: #ffaaaa;
+}
+
+.btn-cancel:hover {
+  background: #6a4a4a;
+}

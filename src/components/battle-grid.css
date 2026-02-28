@@ -69,6 +69,14 @@
   background: rgba(74, 158, 255, 0.6);
 }
 
+/* 攻撃対象ハイライト */
+.cell-attackable {
+  background-color: rgba(255, 74, 74, 0.3) !important;
+  cursor: pointer;
+  outline: 2px solid #ff4a4a;
+  outline-offset: -2px;
+}
+
 /* 地形ラベル */
 .terrain-label {
   font-size: 20px;

@@ -1,0 +1,49 @@
+.battle-log {
+  background: #2a2a2a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 8px;
+  min-width: 300px;
+}
+
+.log-title {
+  margin: 0 0 4px 0;
+  font-size: 12px;
+  color: #888;
+}
+
+.log-list {
+  max-height: 120px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.log-entry {
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+.log-damage {
+  color: #ff8a8a;
+}
+
+.log-heal {
+  color: #8aff8a;
+}
+
+.log-miss {
+  color: #aaa;
+  font-style: italic;
+}
+
+.log-kill {
+  color: #ff4a4a;
+  font-weight: bold;
+}
+
+.log-info {
+  color: #ccc;
+}

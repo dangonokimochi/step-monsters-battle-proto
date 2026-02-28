@@ -57,10 +57,12 @@ function posKey(pos: Position): string {
 export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
   const currentUnitId = getCurrentUnitId(battleState);
 
-  // 移動可能マスをSetに
   const movableSet = new Set(
     battleState.movablePositions.map((p) => posKey(p)),
   );
+
+  // 攻撃対象のユニットIDセット
+  const attackableSet = new Set(battleState.attackableUnitIds);
 
   return (
     <div className="grid-container">
@@ -72,12 +74,14 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
               const unit = findUnit(battleState.units, cell.unitId);
               const isCurrentUnit = unit?.id === currentUnitId;
               const isMovable = movableSet.has(posKey({ row, col }));
+              const isAttackable = unit ? attackableSet.has(unit.id) : false;
 
               const classes = [
                 'cell',
                 terrainClass(cell.terrain),
                 isCurrentUnit ? 'cell-active' : '',
                 isMovable ? 'cell-movable' : '',
+                isAttackable ? 'cell-attackable' : '',
               ]
                 .filter(Boolean)
                 .join(' ');
