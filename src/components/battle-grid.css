@@ -28,25 +28,33 @@
   transition: background-color 0.15s;
 }
 
-/* 地形色 */
+/* 地形色（テクスチャの下地・フォールバック） */
 .cell-plain {
-  background: #3a3a3a;
+  background: #2e3328;
 }
 
 .cell-rock {
-  background: #5a5050;
+  background: #3a3535;
 }
 
 .cell-water {
-  background: #2a4a6a;
+  background: #1a3555;
 }
 
 .cell-bush {
-  background: #2a5a2a;
+  background: #1e3a1e;
 }
 
 .cell-hill {
-  background: #6a5a3a;
+  background: #3a3020;
+}
+
+/* 地形ピクセルアートcanvas */
+.terrain-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 0;
 }
 
 /* 現在行動中のユニットのマスハイライト */
@@ -58,15 +66,32 @@
 
 /* 移動可能マスのハイライト */
 .cell-movable {
-  background-color: rgba(74, 158, 255, 0.25) !important;
   cursor: pointer;
 }
 
+.cell-movable::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border: 2px solid rgba(74, 158, 255, 0.7);
+  border-radius: 3px;
+  background: rgba(74, 158, 255, 0.15);
+  z-index: 1;
+  animation: movable-pulse 1.5s ease-in-out infinite;
+}
+
 .movable-dot {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: rgba(74, 158, 255, 0.6);
+  background: rgba(74, 158, 255, 0.8);
+  z-index: 2;
+  box-shadow: 0 0 6px rgba(74, 158, 255, 0.6);
+}
+
+@keyframes movable-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
 /* 攻撃対象ハイライト */
@@ -77,18 +102,13 @@
   outline-offset: -2px;
 }
 
-/* 地形ラベル */
-.terrain-label {
-  font-size: 20px;
-  opacity: 0.6;
-}
-
 /* ユニット */
 .unit {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
+  z-index: 1;
 }
 
 .unit-sprite {
@@ -115,27 +135,55 @@
   transform: scaleX(-1);
 }
 
-/* 味方・敵の区別 */
-.unit-player {
-  background: rgba(40, 100, 200, 0.35);
-  border: 2px solid #4a9eff;
-  border-radius: 6px;
-  padding: 2px 4px;
-}
-
-.unit-player .unit-sprite {
-  filter: drop-shadow(0 0 3px #4a9eff) drop-shadow(0 0 6px rgba(74, 158, 255, 0.4));
-}
-
+/* 味方・敵の区別 - 足元インジケーター方式 */
+.unit-player,
 .unit-enemy {
-  background: rgba(200, 50, 50, 0.35);
-  border: 2px solid #ff4a4a;
-  border-radius: 6px;
-  padding: 2px 4px;
+  position: relative;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+/* 足元の楕円インジケーター */
+.unit-player::before,
+.unit-enemy::before {
+  content: '';
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 10px;
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.unit-player::before {
+  background: radial-gradient(ellipse, rgba(74, 158, 255, 0.7) 0%, rgba(74, 158, 255, 0) 70%);
+  box-shadow: 0 0 8px rgba(74, 158, 255, 0.5);
+}
+
+.unit-enemy::before {
+  background: radial-gradient(ellipse, rgba(255, 74, 74, 0.7) 0%, rgba(255, 74, 74, 0) 70%);
+  box-shadow: 0 0 8px rgba(255, 74, 74, 0.5);
+}
+
+/* スプライトのグロー（控えめに） */
+.unit-player .unit-sprite {
+  filter: drop-shadow(0 0 2px rgba(74, 158, 255, 0.5));
 }
 
 .unit-enemy .unit-sprite {
-  filter: drop-shadow(0 0 3px #ff4a4a) drop-shadow(0 0 6px rgba(255, 74, 74, 0.4));
+  filter: drop-shadow(0 0 2px rgba(255, 74, 74, 0.5));
+}
+
+/* HPバーの色でもチーム区別 */
+.unit-player .unit-hp-fill {
+  background: #4a9eff;
+}
+
+.unit-enemy .unit-hp-fill {
+  background: #ff6b6b;
 }
 
 /* HPバー */
@@ -218,13 +266,19 @@
     height: 3px;
   }
 
-  .terrain-label {
-    font-size: 14px;
+  .terrain-canvas {
+    width: 100% !important;
+    height: 100% !important;
   }
 
   .movable-dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
+  }
+
+  .cell-movable::after {
+    inset: 1px;
+    border-width: 1px;
   }
 
   .damage-popup {
@@ -235,8 +289,10 @@
     font-size: 16px;
   }
 
-  .unit-player,
-  .unit-enemy {
-    padding: 1px 2px;
+  .unit-player::before,
+  .unit-enemy::before {
+    width: 24px;
+    height: 7px;
+    bottom: 7px;
   }
 }
