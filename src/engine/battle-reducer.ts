@@ -36,7 +36,7 @@ function addLog(
   const id = state.logCounter + 1;
   return {
     ...state,
-    battleLog: [...state.battleLog.slice(-19), { id, message, type }],
+    battleLog: [...state.battleLog.slice(-99), { id, message, type }],
     logCounter: id,
   };
 }
@@ -147,11 +147,6 @@ function handleSelectSkill(state: BattleState, skillId: string): BattleState {
 
   const targets = getAttackTargets(unit, skill, state.units, state.grid);
   if (targets.length === 0) return state;
-
-  // 対象が1体なら即実行
-  if (targets.length === 1) {
-    return executeSkill(state, unit.id, targets[0].id, skill);
-  }
 
   return {
     ...state,

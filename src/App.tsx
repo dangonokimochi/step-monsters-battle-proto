@@ -86,7 +86,6 @@ function App() {
             onCancelSkill={handleCancelSkill}
             onWait={handleWait}
           />
-          <BattleLogPanel logs={battleState.battleLog} />
         </div>
         <aside className="side-panel right-panel">
           <TurnOrderPanel battleState={battleState} />
@@ -95,6 +94,7 @@ function App() {
             team="enemy"
             label="敵"
           />
+          <BattleLogPanel logs={battleState.battleLog} />
         </aside>
       </main>
       <BattleResult battleState={battleState} onRestart={handleRestart} />
