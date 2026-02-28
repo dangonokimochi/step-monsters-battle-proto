@@ -93,6 +93,26 @@
 
 .unit-sprite {
   display: block;
+  animation: unit-breathe 2s ease-in-out infinite;
+}
+
+.unit-sprite.sprite-flip {
+  animation: unit-breathe-flip 2s ease-in-out infinite;
+}
+
+@keyframes unit-breathe {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes unit-breathe-flip {
+  0%, 100% { transform: scaleX(-1) translateY(0); }
+  50% { transform: scaleX(-1) translateY(-2px); }
+}
+
+/* 反転用グローバルクラス */
+.sprite-flip {
+  transform: scaleX(-1);
 }
 
 /* 味方・敵の区別 */

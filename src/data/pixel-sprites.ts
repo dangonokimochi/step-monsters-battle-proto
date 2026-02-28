@@ -1,269 +1,658 @@
-// モンスターの16x16ドット絵データ
+// モンスターの16x16ドット絵データ（アニメーション対応）
 // パレット文字 → カラーコード、'.' は透明
 
 interface SpriteDefinition {
   palette: Record<string, string>;
-  data: string[]; // 16行×16文字
+  frames: string[][]; // 複数フレーム: frames[frameIndex] = 16行×16文字
+  frameDuration?: number; // フレームあたりのms（デフォルト: 500）
 }
 
 export interface ParsedSprite {
   width: number;
   height: number;
-  pixels: (string | null)[][]; // [row][col] = hex color or null
+  frames: (string | null)[][][]; // [frame][row][col] = hex color or null
+  frameDuration: number;
 }
 
-function parseSprite(def: SpriteDefinition): ParsedSprite {
-  const pixels = def.data.map((row) =>
-    [...row].map((ch) => (ch === '.' ? null : def.palette[ch] ?? null)),
+function parseSpriteFrames(def: SpriteDefinition): ParsedSprite {
+  const frames = def.frames.map((frame) =>
+    frame.map((row) =>
+      [...row].map((ch) => (ch === '.' ? null : def.palette[ch] ?? null)),
+    ),
   );
-  return { width: 16, height: 16, pixels };
+  return {
+    width: 16,
+    height: 16,
+    frames,
+    frameDuration: def.frameDuration ?? 500,
+  };
 }
 
 // === スプライト定義 ===
 
 const spriteDefinitions: Record<string, SpriteDefinition> = {
   // 疾風狼 - 銀色の疾風ウルフ（右向き）
+  // フレーム1: 通常 / フレーム2: 尻尾が揺れ、風エフェクト変化 / フレーム3: 脚を踏み替え
   'shippu-wolf': {
     palette: {
-      o: '#222233', // アウトライン
-      a: '#778899', // 濃いグレー毛並み
-      b: '#aabbcc', // 明るいグレー毛並み
-      c: '#d0dde8', // ハイライト
-      e: '#44ee88', // 目（緑）
-      n: '#333344', // 鼻
-      t: '#4488dd', // 青い尾の風エフェクト
+      o: '#222233',
+      a: '#778899',
+      b: '#aabbcc',
+      c: '#d0dde8',
+      e: '#44ee88',
+      n: '#333344',
+      t: '#4488dd',
+      s: '#6699ee', // 風エフェクト（明るい）
     },
-    data: [
-      '................',
-      '.........oo.....',
-      '........obbo....',
-      '.......obbcbo...',
-      '......obbbcbbo..',
-      '......obecbbcoo.',
-      '......obbbbbbbon',
-      '.......obbbbbo..',
-      '...t.oobbbbbbo..',
-      '..t.obbbbbbbbbbo',
-      '.t.obbobbbbboabo',
-      't..oo.obbbb.oao.',
-      '......obbbo.....',
-      '.....ob..ob.....',
-      '.....oo..oo.....',
-      '................',
+    frameDuration: 400,
+    frames: [
+      [
+        '................',
+        '.........oo.....',
+        '........obbo....',
+        '.......obbcbo...',
+        '......obbbcbbo..',
+        '......obecbbcoo.',
+        '......obbbbbbbon',
+        '.......obbbbbo..',
+        '...t.oobbbbbbo..',
+        '..t.obbbbbbbbbbo',
+        '.t.obbobbbbboabo',
+        't..oo.obbbb.oao.',
+        '......obbbo.....',
+        '.....ob..ob.....',
+        '.....oo..oo.....',
+        '................',
+      ],
+      [
+        '................',
+        '.........oo.....',
+        '........obbo....',
+        '.......obbcbo...',
+        '......obbbcbbo..',
+        '......obecbbcoo.',
+        '......obbbbbbbon',
+        '.......obbbbbo..',
+        '..s..oobbbbbbo..',
+        '.s..obbbbbbbbbbo',
+        's..obbobbbbboabo',
+        '...oo.obbbb.oao.',
+        '......obbbo.....',
+        '....ob...ob.....',
+        '....oo...oo.....',
+        '................',
+      ],
+      [
+        '................',
+        '.........oo.....',
+        '........obbo....',
+        '.......obbcbo...',
+        '......obbbcbbo..',
+        '......obecbbcoo.',
+        '......obbbbbbbon',
+        '.......obbbbbo..',
+        '...t.oobbbbbbo..',
+        '..t.obbbbbbbbbbo',
+        '.t.obbobbbbboabo',
+        '...oo.obbbb.oao.',
+        '......obbbo.....',
+        '.....ob..ob.....',
+        '.....oo..oo.....',
+        '................',
+      ],
+      [
+        '................',
+        '.........oo.....',
+        '........obbo....',
+        '.......obbcbo...',
+        '......obbbcbbo..',
+        '......obecbbcoo.',
+        '......obbbbbbbon',
+        '.......obbbbbo..',
+        '..s..oobbbbbbo..',
+        '.s..obbbbbbbbbbo',
+        's..obbobbbbboabo',
+        '...oo.obbbb.oao.',
+        '......obbbo.....',
+        '......ob.ob.....',
+        '......oo.oo.....',
+        '................',
+      ],
     ],
   },
 
   // 岩甲蟹 - オレンジの岩蟹（正面）
+  // フレーム1: ハサミ上 / フレーム2: ハサミ下 / フレーム3: ハサミ大きく開く
   'gankou-crab': {
     palette: {
-      o: '#2a1a0a', // アウトライン
-      r: '#cc6633', // 甲羅（オレンジ）
-      s: '#dd7744', // 甲羅（明るい）
-      c: '#ffaa44', // ハサミ（黄色）
-      e: '#111111', // 目
-      y: '#ddbb66', // 腹
-      l: '#aa5522', // 脚
+      o: '#2a1a0a',
+      r: '#cc6633',
+      s: '#dd7744',
+      c: '#ffaa44',
+      e: '#111111',
+      y: '#ddbb66',
+      l: '#aa5522',
     },
-    data: [
-      '................',
-      '.cc..........cc.',
-      'occo........occo',
-      '.oco........oco.',
-      '..oo..oooo..oo..',
-      '.....osssso.....',
-      '....osssssso....',
-      '...osse..essso..',
-      '...ossssssssso..',
-      '...ossyyyyssso..',
-      '....osssssso....',
-      '.....osrrso.....',
-      '....ol.oo.lo....',
-      '...ol..oo..lo...',
-      '..ol...oo...lo..',
-      '................',
+    frameDuration: 600,
+    frames: [
+      [
+        '................',
+        '.cc..........cc.',
+        'occo........occo',
+        '.oco........oco.',
+        '..oo..oooo..oo..',
+        '.....osssso.....',
+        '....osssssso....',
+        '...osse..essso..',
+        '...ossssssssso..',
+        '...ossyyyyssso..',
+        '....osssssso....',
+        '.....osrrso.....',
+        '....ol.oo.lo....',
+        '...ol..oo..lo...',
+        '..ol...oo...lo..',
+        '................',
+      ],
+      [
+        '................',
+        '................',
+        '.cc..........cc.',
+        'occo........occo',
+        '.ooo..oooo..ooo.',
+        '.....osssso.....',
+        '....osssssso....',
+        '...osse..essso..',
+        '...ossssssssso..',
+        '...ossyyyyssso..',
+        '....osssssso....',
+        '.....osrrso.....',
+        '...ol..oo..lo...',
+        '..ol...oo...lo..',
+        '................',
+        '................',
+      ],
+      [
+        '.cc..........cc.',
+        'occo........occo',
+        '.oco........oco.',
+        '..oo..oooo..oo..',
+        '.....osssso.....',
+        '....osssssso....',
+        '...osse..essso..',
+        '...ossssssssso..',
+        '...ossyyyyssso..',
+        '....osssssso....',
+        '.....osrrso.....',
+        '....ol.oo.lo....',
+        '...ol..oo..lo...',
+        '..ol...oo...lo..',
+        '................',
+        '................',
+      ],
     ],
   },
 
   // 幽灯火 - 紫の幽霊＋青い炎
+  // フレーム1-3: 炎の揺らぎ + ボディがふわふわ揺れる
   yuutouka: {
     palette: {
-      o: '#221133', // アウトライン
-      p: '#8855bb', // 紫ボディ
-      l: '#aa77dd', // 明るい紫
-      w: '#ddccee', // 白ハイライト
-      f: '#44ddff', // シアン炎
-      g: '#88eeff', // 炎ハイライト
-      e: '#ff2244', // 目（赤）
+      o: '#221133',
+      p: '#8855bb',
+      l: '#aa77dd',
+      w: '#ddccee',
+      f: '#44ddff',
+      g: '#88eeff',
+      e: '#ff2244',
+      h: '#66ffee', // 炎ハイライト（明るい）
     },
-    data: [
-      '.......fg.......',
-      '......fggf......',
-      '.....fgffgf.....',
-      '.....ffffff.....',
-      '....oooooooo....',
-      '...opppppppo....',
-      '..olpwppwpplo...',
-      '..oppeoppeoppo..',
-      '..opppppppppo...',
-      '..olppppppplo...',
-      '...oppppppppo...',
-      '...opppppppo....',
-      '....oppppppo....',
-      '...op.opppo.po..',
-      '..o...op.o...o..',
-      '................',
+    frameDuration: 350,
+    frames: [
+      [
+        '.......fg.......',
+        '......fggf......',
+        '.....fgffgf.....',
+        '.....ffffff.....',
+        '....oooooooo....',
+        '...opppppppo....',
+        '..olpwppwpplo...',
+        '..oppeoppeoppo..',
+        '..opppppppppo...',
+        '..olppppppplo...',
+        '...oppppppppo...',
+        '...opppppppo....',
+        '....oppppppo....',
+        '...op.opppo.po..',
+        '..o...op.o...o..',
+        '................',
+      ],
+      [
+        '......fg........',
+        '.....fghgf......',
+        '......fggf......',
+        '.....ffffff.....',
+        '....oooooooo....',
+        '...opppppppo....',
+        '..olpwppwpplo...',
+        '..oppeoppeoppo..',
+        '...opppppppppo..',
+        '...olppppppplo..',
+        '....oppppppppo..',
+        '....opppppppo...',
+        '.....oppppppo...',
+        '...op..opppo.po.',
+        '..o....op.o...o.',
+        '................',
+      ],
+      [
+        '........gf......',
+        '.......fggf.....',
+        '......fgfhgf....',
+        '.....ffffff.....',
+        '....oooooooo....',
+        '...opppppppo....',
+        '..olpwppwpplo...',
+        '..oppeoppeoppo..',
+        '..opppppppppo...',
+        '..olppppppplo...',
+        '...oppppppppo...',
+        '...opppppppo....',
+        '....oppppppo....',
+        '..op.opppo.po...',
+        '.o...op.o...o...',
+        '................',
+      ],
+      [
+        '.......hg.......',
+        '......fghgf.....',
+        '.....fg.fgf.....',
+        '.....ffffff.....',
+        '....oooooooo....',
+        '...opppppppo....',
+        '..olpwppwpplo...',
+        '..oppeoppeoppo..',
+        '...opppppppppo..',
+        '...olppppppplo..',
+        '....oppppppppo..',
+        '....opppppppo...',
+        '.....oppppppo...',
+        '...op..opppo.po.',
+        '..o....op.o...o.',
+        '................',
+      ],
     ],
   },
 
   // 仔竜 - 緑のベビードラゴン（右向き）
+  // フレーム1: 通常 / フレーム2: 翼パタパタ / フレーム3: 口を開ける
   koryuu: {
     palette: {
-      o: '#0a2a0a', // アウトライン
-      g: '#44aa44', // 緑ボディ
-      l: '#66cc66', // 明るい緑
-      y: '#eedd44', // 黄色い腹
-      e: '#ff2222', // 赤い目
-      w: '#338833', // 翼（暗い緑）
-      h: '#55bb55', // 角
+      o: '#0a2a0a',
+      g: '#44aa44',
+      l: '#66cc66',
+      y: '#eedd44',
+      e: '#ff2222',
+      w: '#338833',
+      h: '#55bb55',
+      f: '#ff6622', // 火の息
     },
-    data: [
-      '................',
-      '..........hh....',
-      '.........ohho...',
-      '........olgggo..',
-      '.......olgggggo.',
-      '.......ogelgggo.',
-      '.......ogggggoo.',
-      '........ogggo...',
-      '....w.oogggggoo.',
-      '...ww.oggggggggo',
-      '..www.oggoggggoo',
-      '...w..oo.ogggo..',
-      '.........ogygo..',
-      '........og..og..',
-      '........oo..oo..',
-      '................',
+    frameDuration: 450,
+    frames: [
+      [
+        '................',
+        '..........hh....',
+        '.........ohho...',
+        '........olgggo..',
+        '.......olgggggo.',
+        '.......ogelgggo.',
+        '.......ogggggoo.',
+        '........ogggo...',
+        '....w.oogggggoo.',
+        '...ww.oggggggggo',
+        '..www.oggoggggoo',
+        '...w..oo.ogggo..',
+        '.........ogygo..',
+        '........og..og..',
+        '........oo..oo..',
+        '................',
+      ],
+      [
+        '................',
+        '..........hh....',
+        '.........ohho...',
+        '........olgggo..',
+        '.......olgggggo.',
+        '.......ogelgggo.',
+        '.......ogggggoo.',
+        '........ogggo...',
+        '...ww.oogggggoo.',
+        '..ww..oggggggggo',
+        '.ww...oggoggggoo',
+        '..w...oo.ogggo..',
+        '.........ogygo..',
+        '........og..og..',
+        '........oo..oo..',
+        '................',
+      ],
+      [
+        '................',
+        '..........hh....',
+        '.........ohho...',
+        '........olgggo..',
+        '.......olgggggo.',
+        '.......ogelgggof',
+        '.......ogggggoof',
+        '........ogggo...',
+        '....w.oogggggoo.',
+        '...ww.oggggggggo',
+        '..www.oggoggggoo',
+        '...w..oo.ogggo..',
+        '.........ogygo..',
+        '........og..og..',
+        '........oo..oo..',
+        '................',
+      ],
     ],
   },
 
   // 餓狼 - 暗い茶色の飢えた狼（右向き）
+  // フレーム1: 通常 / フレーム2: 唸る（口を開ける）/ フレーム3: 脚の踏み替え
   garou: {
     palette: {
-      o: '#1a0a0a', // アウトライン
-      d: '#554433', // 暗い茶色
-      b: '#776655', // 茶色
-      c: '#997766', // 明るい茶色
-      e: '#ff2222', // 赤い目
-      t: '#ddddcc', // 牙
+      o: '#1a0a0a',
+      d: '#554433',
+      b: '#776655',
+      c: '#997766',
+      e: '#ff2222',
+      t: '#ddddcc',
+      r: '#ff4444', // 目の輝き
     },
-    data: [
-      '................',
-      '.........oo.....',
-      '........oddo....',
-      '.......oddcdo...',
-      '......odddbddo..',
-      '......odedbbdoo.',
-      '......odddbdddot',
-      '.......odddddo..',
-      '....oodddddddoo.',
-      '...odddddddddddo',
-      '..oddodddddodddo',
-      '..oo..odddd.odo.',
-      '......odddo.....',
-      '.....od..od.....',
-      '.....oo..oo.....',
-      '................',
+    frameDuration: 500,
+    frames: [
+      [
+        '................',
+        '.........oo.....',
+        '........oddo....',
+        '.......oddcdo...',
+        '......odddbddo..',
+        '......odedbbdoo.',
+        '......odddbdddot',
+        '.......odddddo..',
+        '....oodddddddoo.',
+        '...odddddddddddo',
+        '..oddodddddodddo',
+        '..oo..odddd.odo.',
+        '......odddo.....',
+        '.....od..od.....',
+        '.....oo..oo.....',
+        '................',
+      ],
+      [
+        '................',
+        '.........oo.....',
+        '........oddo....',
+        '.......oddcdo...',
+        '......odddbddo..',
+        '......bredbbdoo.',
+        '......odddbdddot',
+        '.......odddddo.t',
+        '....oodddddddoo.',
+        '...odddddddddddo',
+        '..oddodddddodddo',
+        '..oo..odddd.odo.',
+        '......odddo.....',
+        '.....od..od.....',
+        '.....oo..oo.....',
+        '................',
+      ],
+      [
+        '................',
+        '.........oo.....',
+        '........oddo....',
+        '.......oddcdo...',
+        '......odddbddo..',
+        '......odedbbdoo.',
+        '......odddbdddot',
+        '.......odddddo..',
+        '....oodddddddoo.',
+        '...odddddddddddo',
+        '..oddodddddodddo',
+        '..oo..odddd.odo.',
+        '......odddo.....',
+        '....od...od.....',
+        '....oo...oo.....',
+        '................',
+      ],
     ],
   },
 
   // 鉄壁亀 - 灰色の装甲亀（右向き）
+  // フレーム1: 通常 / フレーム2: 首を引っ込める / フレーム3: ゆっくり歩く
   'teppeki-turtle': {
     palette: {
-      o: '#0a1a0a', // アウトライン
-      s: '#667788', // 甲羅（灰色）
-      d: '#445566', // 甲羅（暗い）
-      g: '#448844', // 緑ボディ
-      l: '#66aa66', // 明るい緑
-      e: '#111111', // 目
-      y: '#aabb88', // 腹
+      o: '#0a1a0a',
+      s: '#667788',
+      d: '#445566',
+      g: '#448844',
+      l: '#66aa66',
+      e: '#111111',
+      y: '#aabb88',
     },
-    data: [
-      '................',
-      '................',
-      '.....ooooooo....',
-      '....odsdsdsdoo..',
-      '...osssssssssoo.',
-      '...odddssdddsoo.',
-      '...ossssssssso..',
-      '....ooooooooo...',
-      '...ogggggggggo..',
-      '..ogge.ggggggo..',
-      '..ogyggggggggoo.',
-      '...ogyggggggggoo',
-      '....oggggggo.oo.',
-      '....og.og.og....',
-      '....oo.oo.oo....',
-      '................',
+    frameDuration: 700,
+    frames: [
+      [
+        '................',
+        '................',
+        '.....ooooooo....',
+        '....odsdsdsdoo..',
+        '...osssssssssoo.',
+        '...odddssdddsoo.',
+        '...ossssssssso..',
+        '....ooooooooo...',
+        '...ogggggggggo..',
+        '..ogge.ggggggo..',
+        '..ogyggggggggoo.',
+        '...ogyggggggggoo',
+        '....oggggggo.oo.',
+        '....og.og.og....',
+        '....oo.oo.oo....',
+        '................',
+      ],
+      [
+        '................',
+        '................',
+        '.....ooooooo....',
+        '....odsdsdsdoo..',
+        '...osssssssssoo.',
+        '...odddssdddsoo.',
+        '...ossssssssso..',
+        '....ooooooooo...',
+        '...ogggggggggo..',
+        '..oggggggggggo..',
+        '..ogyggggggggoo.',
+        '...ogyggggggggoo',
+        '....oggggggo.oo.',
+        '....og.og.og....',
+        '....oo.oo.oo....',
+        '................',
+      ],
+      [
+        '................',
+        '................',
+        '.....ooooooo....',
+        '....odsdsdsdoo..',
+        '...osssssssssoo.',
+        '...odddssdddsoo.',
+        '...ossssssssso..',
+        '....ooooooooo...',
+        '...ogggggggggo..',
+        '..ogge.ggggggo..',
+        '..ogyggggggggoo.',
+        '...ogyggggggggoo',
+        '....oggggggo.oo.',
+        '...og..og.og....',
+        '...oo..oo.oo....',
+        '................',
+      ],
     ],
   },
 
   // 影蜘蛛 - 暗い紫の蜘蛛（正面）
+  // フレーム1-3: 脚がうごめく + 目が光る
   'kage-spider': {
     palette: {
-      o: '#0a0a1a', // アウトライン
-      p: '#553388', // 紫ボディ
-      d: '#3a2266', // 暗い紫
-      l: '#774499', // 明るい紫
-      e: '#ff2222', // 赤い目
-      g: '#443366', // 脚
+      o: '#0a0a1a',
+      p: '#553388',
+      d: '#3a2266',
+      l: '#774499',
+      e: '#ff2222',
+      g: '#443366',
+      r: '#ff5555', // 目の光（明るい）
     },
-    data: [
-      '................',
-      '....g..oo..g....',
-      '...g..oppo..g...',
-      '..g..oppppo..g..',
-      '.g..oppddppo..g.',
-      '...oppdppdppo...',
-      '...oppeppeppo...',
-      '....oppppppo....',
-      '.g...oppppo...g.',
-      '..g..opddpo..g..',
-      '...g.oppppo.g...',
-      '....gopppog.....',
-      '...g.op.po.g....',
-      '..g..o...o..g...',
-      '.g...........g..',
-      '................',
+    frameDuration: 350,
+    frames: [
+      [
+        '................',
+        '....g..oo..g....',
+        '...g..oppo..g...',
+        '..g..oppppo..g..',
+        '.g..oppddppo..g.',
+        '...oppdppdppo...',
+        '...oppeppeppo...',
+        '....oppppppo....',
+        '.g...oppppo...g.',
+        '..g..opddpo..g..',
+        '...g.oppppo.g...',
+        '....gopppog.....',
+        '...g.op.po.g....',
+        '..g..o...o..g...',
+        '.g...........g..',
+        '................',
+      ],
+      [
+        '................',
+        '...g...oo...g...',
+        '....g.oppo.g....',
+        '..g..oppppo..g..',
+        '.g..oppddppo..g.',
+        '...oppdppdppo...',
+        '...opprpprppo...',
+        '....oppppppo....',
+        '..g..oppppo..g..',
+        '...g.opddpo.g...',
+        '..g..oppppo..g..',
+        '...g.oppppo.g...',
+        '....gop.pog.....',
+        '...g.o...o.g....',
+        '..g.........g...',
+        '................',
+      ],
+      [
+        '................',
+        '....g..oo..g....',
+        '...g..oppo..g...',
+        '..g..oppppo..g..',
+        '.g..oppddppo..g.',
+        '...oppdppdppo...',
+        '...oppeppeppo...',
+        '....oppppppo....',
+        '.g...oppppo...g.',
+        '..g..opddpo..g..',
+        '...g.oppppo.g...',
+        '....gopppog.....',
+        '...g.op.po.g....',
+        '..g..o...o..g...',
+        '.g...........g..',
+        '................',
+      ],
+      [
+        '................',
+        '.....g.oo.g.....',
+        '...g..oppo..g...',
+        '..g..oppppo..g..',
+        '.g..oppddppo..g.',
+        '...oppdppdppo...',
+        '...opprpprppo...',
+        '....oppppppo....',
+        '..g..oppppo..g..',
+        '...g.opddpo.g...',
+        '....gopppog.....',
+        '...g.oppppo.g...',
+        '..g..op.po..g...',
+        '.g...o...o...g..',
+        '................',
+        '................',
+      ],
     ],
   },
 
   // 飛竜 - 赤/オレンジのワイバーン（右向き、翼を広げた姿）
+  // フレーム1: 翼上 / フレーム2: 翼下 / フレーム3: 翼大きく広げる
   hiryuu: {
     palette: {
-      o: '#2a0a0a', // アウトライン
-      r: '#cc3322', // 赤ボディ
-      d: '#882211', // 暗い赤
-      y: '#ffaa44', // オレンジ/黄色
-      e: '#ffff44', // 黄色い目
-      w: '#dd4433', // 翼膜
+      o: '#2a0a0a',
+      r: '#cc3322',
+      d: '#882211',
+      y: '#ffaa44',
+      e: '#ffff44',
+      w: '#dd4433',
+      m: '#ee5544', // 翼膜（明るい）
     },
-    data: [
-      '................',
-      '..oo............',
-      '.orro...........',
-      '..orrro.oo......',
-      '...orrrrrroo....',
-      '...orerrrrro....',
-      '...orrrrrroo....',
-      '....orrrroo.....',
-      '..ooorrrrrrooo..',
-      '.owwwrrrrrywwwo.',
-      '.ow..rrrry..wo..',
-      '..o..orrro...o..',
-      '.....orryo......',
-      '....or...or.....',
-      '....oo...oo.....',
-      '................',
+    frameDuration: 400,
+    frames: [
+      [
+        '................',
+        '..oo............',
+        '.orro...........',
+        '..orrro.oo......',
+        '...orrrrrroo....',
+        '...orerrrrro....',
+        '...orrrrrroo....',
+        '....orrrroo.....',
+        '..ooorrrrrrooo..',
+        '.owwwrrrrrywwwo.',
+        '.ow..rrrry..wo..',
+        '..o..orrro...o..',
+        '.....orryo......',
+        '....or...or.....',
+        '....oo...oo.....',
+        '................',
+      ],
+      [
+        '................',
+        '..oo............',
+        '.orro...........',
+        '..orrro.oo......',
+        '...orrrrrroo....',
+        '...orerrrrro....',
+        '...orrrrrroo....',
+        '....orrrroo.....',
+        '...oorrrrrrooo..',
+        '..owwrrrrrywwwo.',
+        '.owwwrrrry.wwwo.',
+        '.ow..orrro...wo.',
+        '..o..orryo...o..',
+        '....or...or.....',
+        '....oo...oo.....',
+        '................',
+      ],
+      [
+        '................',
+        '..oo............',
+        '.orro...........',
+        '..orrro.oo......',
+        '...orrrrrroo....',
+        '...orerrrrro....',
+        '...orrrrrroo....',
+        '....orrrroo.....',
+        '.oooorrrrrrooo..',
+        'omwwwrrrrrywwwmo',
+        '.ow..rrrry..wo..',
+        '..o..orrro...o..',
+        '.....orryo......',
+        '....or...or.....',
+        '....oo...oo.....',
+        '................',
+      ],
     ],
   },
 };
@@ -279,12 +668,11 @@ export function getSprite(speciesId: string): ParsedSprite | null {
   const def = spriteDefinitions[speciesId];
   if (!def) return null;
 
-  const parsed = parseSprite(def);
+  const parsed = parseSpriteFrames(def);
   spriteCache.set(speciesId, parsed);
   return parsed;
 }
 
-// 全スプライトIDのリスト
 export function getAllSpriteIds(): string[] {
   return Object.keys(spriteDefinitions);
 }
