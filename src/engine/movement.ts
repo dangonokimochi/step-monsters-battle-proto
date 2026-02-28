@@ -1,5 +1,5 @@
 import type { Grid, Position, BattleUnit } from '../types';
-import { GRID_SIZE } from '../types';
+import { GRID_COLS, GRID_ROWS } from '../types';
 
 const DIRECTIONS: Position[] = [
   { row: -1, col: 0 }, // 上
@@ -13,7 +13,7 @@ function posKey(pos: Position): string {
 }
 
 function isInBounds(row: number, col: number): boolean {
-  return row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE;
+  return row >= 0 && row < GRID_ROWS && col >= 0 && col < GRID_COLS;
 }
 
 // BFSで移動可能範囲を計算
