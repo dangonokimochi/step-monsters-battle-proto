@@ -133,3 +133,90 @@
   background: #4caf50;
   transition: width 0.3s;
 }
+
+/* ダメージポップアップ */
+.damage-popup {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  font-weight: bold;
+  pointer-events: none;
+  z-index: 10;
+  animation: popup-float 1s ease-out forwards;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.popup-damage {
+  color: #ff4444;
+}
+
+.popup-heal {
+  color: #44ff44;
+}
+
+.popup-miss {
+  color: #aaaaaa;
+  font-style: italic;
+  font-size: 14px;
+}
+
+.popup-kill {
+  color: #ff0000;
+  font-size: 20px;
+}
+
+@keyframes popup-float {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-30px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-40px);
+  }
+}
+
+/* モバイル: セルを画面幅に合わせて縮小 */
+@media (max-width: 900px) {
+  .cell {
+    width: calc((100vw - 24px) / 8);
+    height: calc((100vw - 24px) / 8);
+  }
+
+  .unit-emoji {
+    font-size: 20px;
+  }
+
+  .unit-hp-bar {
+    width: 28px;
+    height: 3px;
+  }
+
+  .terrain-label {
+    font-size: 14px;
+  }
+
+  .movable-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .damage-popup {
+    font-size: 14px;
+  }
+
+  .popup-kill {
+    font-size: 16px;
+  }
+
+  .unit-player,
+  .unit-enemy {
+    padding: 1px 2px;
+  }
+}

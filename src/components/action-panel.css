@@ -7,6 +7,8 @@
   flex-direction: column;
   gap: 8px;
   min-width: 300px;
+  width: 100%;
+  max-width: 520px;
 }
 
 .action-info {
@@ -124,4 +126,27 @@
 
 .btn-cancel:hover {
   background: #6a4a4a;
+}
+
+/* 敵ターン表示 */
+.enemy-name {
+  color: #ff6a6a !important;
+}
+
+.enemy-phase {
+  background: #3a0000 !important;
+  color: #ff6a6a !important;
+}
+
+.enemy-thinking {
+  font-size: 14px;
+  color: #ff8a8a;
+  text-align: center;
+  padding: 8px;
+  animation: thinking-pulse 1s infinite;
+}
+
+@keyframes thinking-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }

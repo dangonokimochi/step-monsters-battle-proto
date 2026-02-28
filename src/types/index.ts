@@ -107,6 +107,14 @@ export interface BattleLog {
   type: 'damage' | 'heal' | 'miss' | 'kill' | 'info';
 }
 
+// === ダメージポップアップ ===
+export interface DamagePopup {
+  id: number;
+  position: Position;
+  text: string;
+  type: 'damage' | 'heal' | 'miss' | 'kill';
+}
+
 // === 戦闘状態 ===
 export interface BattleState {
   grid: Grid;
@@ -123,5 +131,7 @@ export interface BattleState {
   hasMoved: boolean; // 今ターンで移動済みか
   battleLog: BattleLog[];
   logCounter: number;
+  damagePopups: DamagePopup[];
+  popupCounter: number;
   result: 'none' | 'win' | 'lose';
 }

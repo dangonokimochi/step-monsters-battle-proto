@@ -66,3 +66,32 @@
   color: #888;
   font-size: 11px;
 }
+
+/* モバイル: ターン順パネルをコンパクトに */
+@media (max-width: 900px) {
+  .turn-order-panel {
+    padding: 8px;
+    min-width: unset;
+    flex: 1;
+  }
+
+  .turn-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+
+  .turn-item {
+    padding: 2px 6px;
+    font-size: 11px;
+    gap: 3px;
+  }
+
+  .turn-emoji {
+    font-size: 14px;
+  }
+
+  .turn-spd {
+    display: none;
+  }
+}

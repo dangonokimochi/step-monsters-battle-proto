@@ -173,6 +173,8 @@ export function initBattle(
     hasMoved: false,
     battleLog: [],
     logCounter: 0,
+    damagePopups: [],
+    popupCounter: 0,
     result: 'none',
   };
 }

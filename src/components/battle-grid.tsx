@@ -1,6 +1,15 @@
-import type { BattleState, BattleUnit, Position, TerrainType } from '../types';
+import type { BattleState, BattleUnit, Position, TerrainType, DamagePopup } from '../types';
 import { GRID_SIZE } from '../types';
 import './battle-grid.css';
+
+function popupClass(type: DamagePopup['type']): string {
+  switch (type) {
+    case 'damage': return 'popup-damage';
+    case 'heal': return 'popup-heal';
+    case 'miss': return 'popup-miss';
+    case 'kill': return 'popup-kill';
+  }
+}
 
 interface BattleGridProps {
   battleState: BattleState;
@@ -86,6 +95,10 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
                 .filter(Boolean)
                 .join(' ');
 
+              const cellPopups = battleState.damagePopups.filter(
+                (p) => p.position.row === row && p.position.col === col,
+              );
+
               return (
                 <div
                   className={classes}
@@ -114,6 +127,14 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
                   {isMovable && !unit && (
                     <div className="movable-dot" />
                   )}
+                  {cellPopups.map((popup) => (
+                    <div
+                      key={popup.id}
+                      className={`damage-popup ${popupClass(popup.type)}`}
+                    >
+                      {popup.text}
+                    </div>
+                  ))}
                 </div>
               );
             })}

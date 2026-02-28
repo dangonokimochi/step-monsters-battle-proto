@@ -47,6 +47,16 @@ function App() {
     window.location.reload();
   };
 
+  // ポップアップの自動クリア
+  useEffect(() => {
+    if (battleState.damagePopups.length > 0) {
+      const timer = setTimeout(() => {
+        dispatch({ type: 'CLEAR_POPUPS' });
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [battleState.damagePopups]);
+
   // 敵AIターンを自動実行
   useEffect(() => {
     if (battleState.phase !== 'battle') return;

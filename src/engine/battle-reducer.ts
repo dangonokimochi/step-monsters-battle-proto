@@ -1,4 +1,4 @@
-import type { BattleState, BattleLog, Position, Skill } from '../types';
+import type { BattleState, BattleLog, Position, Skill, DamagePopup } from '../types';
 import { calcMovablePositions } from './movement';
 import { calcTurnOrder } from './battle-setup';
 import { getAttackTargets, executeAttack } from './combat';
@@ -12,7 +12,8 @@ export type BattleAction =
   | { type: 'ENEMY_AI_TURN' }
   | { type: 'CANCEL_SKILL' }
   | { type: 'WAIT' }
-  | { type: 'START_TURN' };
+  | { type: 'START_TURN' }
+  | { type: 'CLEAR_POPUPS' };
 
 function findUnitById(state: BattleState, id: string | null) {
   if (!id) return undefined;
@@ -38,6 +39,20 @@ function addLog(
     ...state,
     battleLog: [...state.battleLog.slice(-99), { id, message, type }],
     logCounter: id,
+  };
+}
+
+function addPopup(
+  state: BattleState,
+  position: Position,
+  text: string,
+  type: DamagePopup['type'],
+): BattleState {
+  const id = state.popupCounter + 1;
+  return {
+    ...state,
+    damagePopups: [...state.damagePopups, { id, position, text, type }],
+    popupCounter: id,
   };
 }
 
@@ -188,12 +203,14 @@ function executeSkill(
       `${attacker.name}の${skill.name}! ${target.name}のHPが${result.damage}回復!`,
       'heal',
     );
+    newState = addPopup(newState, target.position, `+${result.damage}`, 'heal');
   } else if (result.evaded) {
     newState = addLog(
       { ...newState, units: newUnits },
       `${attacker.name}の${skill.name}! ${target.name}は回避した!`,
       'miss',
     );
+    newState = addPopup(newState, target.position, 'MISS', 'miss');
   } else {
     // ダメージ
     newUnits = newUnits.map((u) => {
@@ -206,6 +223,12 @@ function executeSkill(
       { ...newState, units: newUnits },
       `${attacker.name}の${skill.name}! ${target.name}に${result.damage}ダメージ!`,
       'damage',
+    );
+    newState = addPopup(
+      newState,
+      target.position,
+      `${result.damage}`,
+      result.targetKilled ? 'kill' : 'damage',
     );
 
     if (result.targetKilled) {
@@ -348,6 +371,8 @@ export function battleReducer(
       return handleEnemyAI(state);
     case 'START_TURN':
       return startTurn(state);
+    case 'CLEAR_POPUPS':
+      return { ...state, damagePopups: [] };
     default:
       return state;
   }

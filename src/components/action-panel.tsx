@@ -21,7 +21,21 @@ export function ActionPanel({
 
   const currentId = battleState.turnOrder[battleState.currentTurnIndex];
   const currentUnit = battleState.units.find((u) => u.id === currentId);
-  if (!currentUnit || currentUnit.team !== 'player') return null;
+  if (!currentUnit) return null;
+
+  // 敵ターンは思考中表示
+  if (currentUnit.team === 'enemy') {
+    return (
+      <div className="action-panel">
+        <div className="action-info">
+          <span className="action-unit-emoji">{currentUnit.emoji}</span>
+          <span className="action-unit-name enemy-name">{currentUnit.name}</span>
+          <span className="action-phase-label enemy-phase">敵ターン</span>
+        </div>
+        <div className="enemy-thinking">思考中...</div>
+      </div>
+    );
+  }
 
   const phaseLabel =
     turnPhase === 'move'
