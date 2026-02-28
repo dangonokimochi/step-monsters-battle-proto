@@ -1,5 +1,6 @@
 import type { BattleState, BattleUnit, TerrainType } from '../types';
 import { GRID_SIZE } from '../types';
+import { PixelSprite } from './pixel-sprite';
 import './battle-grid.css';
 
 interface BattleGridProps {
@@ -74,7 +75,12 @@ export function BattleGrid({ battleState }: BattleGridProps) {
                     <div
                       className={`unit ${unit.team === 'player' ? 'unit-player' : 'unit-enemy'}`}
                     >
-                      <span className="unit-emoji">{unit.emoji}</span>
+                      <PixelSprite
+                        speciesId={unit.speciesId}
+                        size={40}
+                        flip={unit.team === 'enemy'}
+                        className="unit-sprite"
+                      />
                       <div className="unit-hp-bar">
                         <div
                           className="unit-hp-fill"
