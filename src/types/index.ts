@@ -105,6 +105,7 @@ export interface BattleLog {
   id: number;
   message: string;
   type: 'damage' | 'heal' | 'miss' | 'kill' | 'info';
+  team?: Team; // 行動者のチーム
 }
 
 // === ダメージポップアップ ===

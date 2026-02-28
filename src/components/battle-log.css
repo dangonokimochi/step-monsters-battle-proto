@@ -3,8 +3,7 @@
   border: 1px solid #555;
   border-radius: 4px;
   padding: 8px;
-  flex: 1;
-  min-height: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -30,24 +29,42 @@
   font-size: 12px;
   padding: 2px 4px;
   border-radius: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.log-damage {
-  color: #ff8a8a;
+/* 味方の行動ログ */
+.log-team-player {
+  color: #8ac4ff;
+  border-left: 2px solid #4a9eff;
+  padding-left: 6px;
 }
 
-.log-heal {
-  color: #8aff8a;
+/* 敵の行動ログ */
+.log-team-enemy {
+  color: #ff9a8a;
+  border-left: 2px solid #ff4a4a;
+  padding-left: 6px;
 }
 
-.log-miss {
-  color: #aaa;
-  font-style: italic;
-}
-
-.log-kill {
-  color: #ff4a4a;
+/* チームタグ */
+.log-team-tag {
+  font-size: 10px;
+  padding: 0 4px;
+  border-radius: 2px;
   font-weight: bold;
+  flex-shrink: 0;
+}
+
+.tag-player {
+  background: rgba(74, 158, 255, 0.2);
+  color: #4a9eff;
+}
+
+.tag-enemy {
+  background: rgba(255, 74, 74, 0.2);
+  color: #ff4a4a;
 }
 
 .log-info {

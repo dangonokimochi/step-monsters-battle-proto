@@ -29,17 +29,7 @@
 .app-main {
   display: flex;
   justify-content: center;
-  gap: 16px;
   padding: 16px;
-  align-items: flex-start;
-}
-
-.side-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 200px;
-  max-width: 220px;
 }
 
 .center-area {
@@ -47,6 +37,18 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  max-width: 600px;
+  width: 100%;
+}
+
+.status-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.status-row > * {
+  flex: 1;
 }
 
 /* モバイルレイアウト */
@@ -61,32 +63,14 @@
   }
 
   .app-main {
-    flex-direction: column;
-    align-items: center;
     padding: 8px;
-    gap: 8px;
-  }
-
-  .side-panel {
-    min-width: unset;
-    max-width: 100%;
-    width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-  }
-
-  .left-panel {
-    order: 2;
   }
 
   .center-area {
-    order: 1;
-    width: 100%;
+    gap: 8px;
   }
 
-  .right-panel {
-    order: 3;
+  .status-row {
+    gap: 6px;
   }
 }

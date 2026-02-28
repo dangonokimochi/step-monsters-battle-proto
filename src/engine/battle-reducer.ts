@@ -33,11 +33,12 @@ function addLog(
   state: BattleState,
   message: string,
   type: BattleLog['type'],
+  team?: 'player' | 'enemy',
 ): BattleState {
   const id = state.logCounter + 1;
   return {
     ...state,
-    battleLog: [...state.battleLog.slice(-99), { id, message, type }],
+    battleLog: [...state.battleLog.slice(-99), { id, message, type, team }],
     logCounter: id,
   };
 }
@@ -202,6 +203,7 @@ function executeSkill(
       { ...newState, units: newUnits },
       `${attacker.name}の${skill.name}! ${target.name}のHPが${result.damage}回復!`,
       'heal',
+      attacker.team,
     );
     newState = addPopup(newState, target.position, `+${result.damage}`, 'heal');
   } else if (result.evaded) {
@@ -209,6 +211,7 @@ function executeSkill(
       { ...newState, units: newUnits },
       `${attacker.name}の${skill.name}! ${target.name}は回避した!`,
       'miss',
+      attacker.team,
     );
     newState = addPopup(newState, target.position, 'MISS', 'miss');
   } else {
@@ -223,6 +226,7 @@ function executeSkill(
       { ...newState, units: newUnits },
       `${attacker.name}の${skill.name}! ${target.name}に${result.damage}ダメージ!`,
       'damage',
+      attacker.team,
     );
     newState = addPopup(
       newState,
@@ -243,6 +247,7 @@ function executeSkill(
         { ...newState, units: newUnits, grid: newGrid },
         `${target.name}は倒れた!`,
         'kill',
+        attacker.team,
       );
     }
   }
@@ -326,7 +331,7 @@ function handleEnemyAI(state: BattleState): BattleState {
 
   if (!decision) {
     // 行動できない場合は待機
-    const logged = addLog(state, `${unit.name}は待機した`, 'info');
+    const logged = addLog(state, `${unit.name}は待機した`, 'info', 'enemy');
     return advanceTurn(logged);
   }
 
@@ -339,7 +344,7 @@ function handleEnemyAI(state: BattleState): BattleState {
 
   // 攻撃対象がいない場合（移動のみ）
   if (!decision.attackTarget) {
-    const logged = addLog(currentState, `${unit.name}は移動した`, 'info');
+    const logged = addLog(currentState, `${unit.name}は移動した`, 'info', 'enemy');
     return advanceTurn(logged);
   }
 

@@ -77,14 +77,8 @@ function App() {
         <span className="round-label">Round {battleState.round}</span>
       </header>
       <main className="app-main">
-        <aside className="side-panel left-panel">
-          <UnitStatusPanel
-            units={battleState.units}
-            team="player"
-            label="味方"
-          />
-        </aside>
         <div className="center-area">
+          <TurnOrderPanel battleState={battleState} />
           <BattleGrid
             battleState={battleState}
             onCellClick={handleCellClick}
@@ -96,16 +90,20 @@ function App() {
             onCancelSkill={handleCancelSkill}
             onWait={handleWait}
           />
-        </div>
-        <aside className="side-panel right-panel">
-          <TurnOrderPanel battleState={battleState} />
-          <UnitStatusPanel
-            units={battleState.units}
-            team="enemy"
-            label="敵"
-          />
+          <div className="status-row">
+            <UnitStatusPanel
+              units={battleState.units}
+              team="player"
+              label="味方"
+            />
+            <UnitStatusPanel
+              units={battleState.units}
+              team="enemy"
+              label="敵"
+            />
+          </div>
           <BattleLogPanel logs={battleState.battleLog} />
-        </aside>
+        </div>
       </main>
       <BattleResult battleState={battleState} onRestart={handleRestart} />
     </div>

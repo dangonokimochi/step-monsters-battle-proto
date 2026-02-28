@@ -6,19 +6,10 @@ interface BattleLogPanelProps {
   logs: BattleLog[];
 }
 
-function logClass(type: BattleLog['type']): string {
-  switch (type) {
-    case 'damage':
-      return 'log-damage';
-    case 'heal':
-      return 'log-heal';
-    case 'miss':
-      return 'log-miss';
-    case 'kill':
-      return 'log-kill';
-    default:
-      return 'log-info';
-  }
+function teamClass(team?: 'player' | 'enemy'): string {
+  if (team === 'player') return 'log-team-player';
+  if (team === 'enemy') return 'log-team-enemy';
+  return '';
 }
 
 export function BattleLogPanel({ logs }: BattleLogPanelProps) {
@@ -33,7 +24,12 @@ export function BattleLogPanel({ logs }: BattleLogPanelProps) {
       <h3 className="log-title">戦闘ログ</h3>
       <div className="log-list">
         {logs.map((log) => (
-          <div key={log.id} className={`log-entry ${logClass(log.type)}`}>
+          <div key={log.id} className={`log-entry ${teamClass(log.team)}`}>
+            {log.team && (
+              <span className={`log-team-tag ${log.team === 'player' ? 'tag-player' : 'tag-enemy'}`}>
+                {log.team === 'player' ? '味方' : '敵'}
+              </span>
+            )}
             {log.message}
           </div>
         ))}
