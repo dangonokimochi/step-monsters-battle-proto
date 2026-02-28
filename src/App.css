@@ -21,34 +21,15 @@
   color: #ffd700;
 }
 
-.restart-btn {
-  padding: 6px 16px;
-  background: #444;
-  color: #eee;
-  border: 1px solid #666;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-}
-
-.restart-btn:hover {
-  background: #555;
+.round-label {
+  font-size: 14px;
+  color: #aaa;
 }
 
 .app-main {
   display: flex;
   justify-content: center;
-  gap: 16px;
   padding: 16px;
-  align-items: flex-start;
-}
-
-.side-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 200px;
-  max-width: 220px;
 }
 
 .center-area {
@@ -56,4 +37,40 @@
   flex-direction: column;
   align-items: center;
   gap: 12px;
+  max-width: 600px;
+  width: 100%;
+}
+
+.status-row {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.status-row > * {
+  flex: 1;
+}
+
+/* モバイルレイアウト */
+@media (max-width: 900px) {
+  .app-header {
+    padding: 8px;
+    gap: 8px;
+  }
+
+  .app-header h1 {
+    font-size: 16px;
+  }
+
+  .app-main {
+    padding: 8px;
+  }
+
+  .center-area {
+    gap: 8px;
+  }
+
+  .status-row {
+    gap: 6px;
+  }
 }

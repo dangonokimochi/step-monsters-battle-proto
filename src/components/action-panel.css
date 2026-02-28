@@ -1,0 +1,150 @@
+.action-panel {
+  background: #2a2a2a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.action-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-unit-emoji {
+  font-size: 24px;
+}
+
+.action-unit-name {
+  font-size: 16px;
+  font-weight: bold;
+  color: #6ab4ff;
+}
+
+.action-phase-label {
+  font-size: 12px;
+  color: #ffd700;
+  background: #3a3000;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: auto;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  border: 1px solid #666;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  flex: 1;
+}
+
+.btn-skip {
+  background: #3a4a5a;
+  color: #aad4ff;
+}
+
+.btn-skip:hover {
+  background: #4a5a6a;
+}
+
+.btn-wait {
+  background: #4a4a3a;
+  color: #ffd700;
+}
+
+.btn-wait:hover {
+  background: #5a5a4a;
+}
+
+/* スキルリスト */
+.skill-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skill-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #3a3a4a;
+  color: #eee;
+  border: 1px solid #666;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+}
+
+.skill-btn:hover:not(:disabled) {
+  background: #4a4a5a;
+  border-color: #88f;
+}
+
+.skill-normal {
+  border-color: #555;
+}
+
+.skill-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.skill-name {
+  font-weight: bold;
+}
+
+.skill-info {
+  font-size: 11px;
+  color: #aaa;
+}
+
+/* 対象選択 */
+.target-hint {
+  font-size: 13px;
+  color: #ff6a6a;
+  flex: 1;
+}
+
+.btn-cancel {
+  background: #5a3a3a;
+  color: #ffaaaa;
+}
+
+.btn-cancel:hover {
+  background: #6a4a4a;
+}
+
+/* 敵ターン表示 */
+.enemy-name {
+  color: #ff6a6a !important;
+}
+
+.enemy-phase {
+  background: #3a0000 !important;
+  color: #ff6a6a !important;
+}
+
+.enemy-thinking {
+  font-size: 14px;
+  color: #ff8a8a;
+  text-align: center;
+  padding: 8px;
+  animation: thinking-pulse 1s infinite;
+}
+
+@keyframes thinking-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}

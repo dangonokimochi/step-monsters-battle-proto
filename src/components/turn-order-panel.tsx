@@ -32,7 +32,7 @@ export function TurnOrderPanel({ battleState }: TurnOrderPanelProps) {
             >
               <PixelSprite
                 speciesId={unit.speciesId}
-                size={22}
+                size={20}
                 flip={unit.team === 'enemy'}
                 className="turn-sprite"
               />

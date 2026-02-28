@@ -51,6 +51,25 @@ export function createEmptyGrid(): Grid {
   return grid;
 }
 
+// ランダム地形配置（仕様: 8〜12マス程度に地形を配置）
+function placeRandomTerrain(grid: Grid): void {
+  const terrainTypes: Array<GridCell['terrain']> = ['rock', 'water', 'bush', 'hill'];
+  const terrainCount = 8 + Math.floor(Math.random() * 5); // 8〜12
+
+  let placed = 0;
+  while (placed < terrainCount) {
+    const row = Math.floor(Math.random() * GRID_SIZE);
+    const col = Math.floor(Math.random() * GRID_SIZE);
+
+    // 既に地形がある場合はスキップ
+    if (grid[row][col].terrain !== 'plain') continue;
+
+    const terrain = terrainTypes[Math.floor(Math.random() * terrainTypes.length)];
+    grid[row][col].terrain = terrain;
+    placed++;
+  }
+}
+
 // 味方の初期配置（左半分 col 0-3 にランダム配置）
 function placePlayerUnits(
   monsters: MonsterSpecies[],
@@ -132,6 +151,7 @@ export function initBattle(
   enemyMonsterData: MonsterSpecies[],
 ): BattleState {
   const grid = createEmptyGrid();
+  placeRandomTerrain(grid);
 
   const playerUnits = placePlayerUnits(playerMonsterData, grid);
   const enemyUnits = placeEnemyUnits(enemyMonsterData, grid, playerUnits);
@@ -145,6 +165,16 @@ export function initBattle(
     currentTurnIndex: 0,
     round: 1,
     phase: 'battle',
+    turnPhase: 'move' as const,
+    selectedUnitId: turnOrder[0] ?? null,
+    movablePositions: [],
+    attackableUnitIds: [],
+    selectedSkillId: null,
+    hasMoved: false,
+    battleLog: [],
+    logCounter: 0,
+    damagePopups: [],
+    popupCounter: 0,
     result: 'none',
   };
 }

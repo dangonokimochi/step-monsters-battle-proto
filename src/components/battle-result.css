@@ -1,0 +1,53 @@
+.result-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.result-card {
+  background: #2a2a2a;
+  border: 2px solid #555;
+  border-radius: 8px;
+  padding: 32px 48px;
+  text-align: center;
+}
+
+.result-title {
+  margin: 0 0 8px 0;
+  font-size: 36px;
+}
+
+.result-win {
+  color: #ffd700;
+}
+
+.result-lose {
+  color: #ff4a4a;
+}
+
+.result-round {
+  margin: 0 0 24px 0;
+  font-size: 14px;
+  color: #aaa;
+}
+
+.result-btn {
+  padding: 12px 32px;
+  background: #4a6a8a;
+  color: #fff;
+  border: 1px solid #6a8aaa;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.result-btn:hover {
+  background: #5a7a9a;
+}

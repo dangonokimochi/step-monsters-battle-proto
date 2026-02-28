@@ -2,13 +2,13 @@
   background: #2a2a2a;
   border: 1px solid #555;
   border-radius: 4px;
-  padding: 12px;
-  min-width: 180px;
+  padding: 8px 12px;
+  width: 100%;
 }
 
 .panel-title {
-  margin: 0 0 8px 0;
-  font-size: 14px;
+  margin: 0 0 6px 0;
+  font-size: 12px;
   color: #ccc;
   text-align: center;
 }
@@ -18,18 +18,21 @@
   margin: 0;
   padding: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
   gap: 4px;
+  justify-content: center;
 }
 
 .turn-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
+  gap: 4px;
+  padding: 3px 8px;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 12px;
   background: #333;
+  white-space: nowrap;
 }
 
 .turn-current {
@@ -38,11 +41,11 @@
 }
 
 .turn-done {
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 .turn-dead {
-  opacity: 0.3;
+  opacity: 0.25;
   text-decoration: line-through;
 }
 
@@ -52,7 +55,7 @@
 }
 
 .turn-name {
-  flex: 1;
+  flex-shrink: 0;
 }
 
 .name-player {
@@ -65,5 +68,27 @@
 
 .turn-spd {
   color: #888;
-  font-size: 11px;
+  font-size: 10px;
+}
+
+/* モバイル */
+@media (max-width: 900px) {
+  .turn-order-panel {
+    padding: 6px 8px;
+  }
+
+  .turn-item {
+    padding: 2px 6px;
+    font-size: 11px;
+    gap: 3px;
+  }
+
+  .turn-sprite {
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .turn-spd {
+    display: none;
+  }
 }
