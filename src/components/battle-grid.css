@@ -1,0 +1,100 @@
+.grid-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  border: 2px solid #444;
+  border-radius: 4px;
+  background: #2a2a2a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.grid-row {
+  display: flex;
+}
+
+.cell {
+  width: 64px;
+  height: 64px;
+  border: 1px solid #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background-color 0.15s;
+}
+
+/* 地形色 */
+.cell-plain {
+  background: #3a3a3a;
+}
+
+.cell-rock {
+  background: #5a5050;
+}
+
+.cell-water {
+  background: #2a4a6a;
+}
+
+.cell-bush {
+  background: #2a5a2a;
+}
+
+.cell-hill {
+  background: #6a5a3a;
+}
+
+/* 現在行動中のユニットのマスハイライト */
+.cell-active {
+  outline: 3px solid #ffd700;
+  outline-offset: -3px;
+  z-index: 1;
+}
+
+/* 地形ラベル */
+.terrain-label {
+  font-size: 20px;
+  opacity: 0.6;
+}
+
+/* ユニット */
+.unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.unit-emoji {
+  font-size: 28px;
+  line-height: 1;
+}
+
+/* 味方・敵の区別 */
+.unit-player .unit-emoji {
+  filter: drop-shadow(0 0 4px #4a9eff);
+}
+
+.unit-enemy .unit-emoji {
+  filter: drop-shadow(0 0 4px #ff4a4a);
+}
+
+/* HPバー */
+.unit-hp-bar {
+  width: 40px;
+  height: 4px;
+  background: #222;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.unit-hp-fill {
+  height: 100%;
+  background: #4caf50;
+  transition: width 0.3s;
+}
