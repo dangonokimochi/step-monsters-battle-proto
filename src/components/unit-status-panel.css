@@ -103,3 +103,41 @@
   color: #888;
   margin-top: 4px;
 }
+
+/* モバイル: ステータスパネルを横並びコンパクトに */
+@media (max-width: 900px) {
+  .status-panel {
+    padding: 8px;
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .status-list {
+    gap: 4px;
+  }
+
+  .status-card {
+    padding: 4px 6px;
+  }
+
+  .status-header {
+    margin-bottom: 2px;
+  }
+
+  .status-emoji {
+    font-size: 16px;
+  }
+
+  .status-name {
+    font-size: 12px;
+  }
+
+  .bar-value {
+    min-width: 40px;
+    font-size: 9px;
+  }
+
+  .status-stats {
+    display: none;
+  }
+}

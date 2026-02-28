@@ -94,6 +94,28 @@ export interface GridCell {
 
 export type Grid = GridCell[][];
 
+// === ターンフェーズ ===
+// move: 移動フェーズ（任意）
+// action: 行動フェーズ（通常攻撃・スキル・待機）
+// select_target: 攻撃対象を選択中
+export type TurnPhase = 'move' | 'action' | 'select_target';
+
+// === 戦闘ログ ===
+export interface BattleLog {
+  id: number;
+  message: string;
+  type: 'damage' | 'heal' | 'miss' | 'kill' | 'info';
+  team?: Team; // 行動者のチーム
+}
+
+// === ダメージポップアップ ===
+export interface DamagePopup {
+  id: number;
+  position: Position;
+  text: string;
+  type: 'damage' | 'heal' | 'miss' | 'kill';
+}
+
 // === 戦闘状態 ===
 export interface BattleState {
   grid: Grid;
@@ -102,5 +124,15 @@ export interface BattleState {
   currentTurnIndex: number;
   round: number;
   phase: 'placement' | 'battle' | 'result';
+  turnPhase: TurnPhase;
+  selectedUnitId: string | null;
+  movablePositions: Position[]; // 移動可能なマスのリスト
+  attackableUnitIds: string[]; // 攻撃可能な対象のIDリスト
+  selectedSkillId: string | null; // 選択中のスキルID
+  hasMoved: boolean; // 今ターンで移動済みか
+  battleLog: BattleLog[];
+  logCounter: number;
+  damagePopups: DamagePopup[];
+  popupCounter: number;
   result: 'none' | 'win' | 'lose';
 }

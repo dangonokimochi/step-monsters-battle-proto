@@ -56,6 +56,27 @@
   z-index: 1;
 }
 
+/* 移動可能マスのハイライト */
+.cell-movable {
+  background-color: rgba(74, 158, 255, 0.25) !important;
+  cursor: pointer;
+}
+
+.movable-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(74, 158, 255, 0.6);
+}
+
+/* 攻撃対象ハイライト */
+.cell-attackable {
+  background-color: rgba(255, 74, 74, 0.3) !important;
+  cursor: pointer;
+  outline: 2px solid #ff4a4a;
+  outline-offset: -2px;
+}
+
 /* 地形ラベル */
 .terrain-label {
   font-size: 20px;
@@ -76,12 +97,26 @@
 }
 
 /* 味方・敵の区別 */
+.unit-player {
+  background: rgba(40, 100, 200, 0.35);
+  border: 2px solid #4a9eff;
+  border-radius: 6px;
+  padding: 2px 4px;
+}
+
 .unit-player .unit-emoji {
-  filter: drop-shadow(0 0 4px #4a9eff);
+  filter: drop-shadow(0 0 3px #4a9eff);
+}
+
+.unit-enemy {
+  background: rgba(200, 50, 50, 0.35);
+  border: 2px solid #ff4a4a;
+  border-radius: 6px;
+  padding: 2px 4px;
 }
 
 .unit-enemy .unit-emoji {
-  filter: drop-shadow(0 0 4px #ff4a4a);
+  filter: drop-shadow(0 0 3px #ff4a4a);
 }
 
 /* HPバー */
@@ -97,4 +132,91 @@
   height: 100%;
   background: #4caf50;
   transition: width 0.3s;
+}
+
+/* ダメージポップアップ */
+.damage-popup {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  font-weight: bold;
+  pointer-events: none;
+  z-index: 10;
+  animation: popup-float 1s ease-out forwards;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.popup-damage {
+  color: #ff4444;
+}
+
+.popup-heal {
+  color: #44ff44;
+}
+
+.popup-miss {
+  color: #aaaaaa;
+  font-style: italic;
+  font-size: 14px;
+}
+
+.popup-kill {
+  color: #ff0000;
+  font-size: 20px;
+}
+
+@keyframes popup-float {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-30px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-40px);
+  }
+}
+
+/* モバイル: セルを画面幅に合わせて縮小 */
+@media (max-width: 900px) {
+  .cell {
+    width: calc((100vw - 24px) / 8);
+    height: calc((100vw - 24px) / 8);
+  }
+
+  .unit-emoji {
+    font-size: 20px;
+  }
+
+  .unit-hp-bar {
+    width: 28px;
+    height: 3px;
+  }
+
+  .terrain-label {
+    font-size: 14px;
+  }
+
+  .movable-dot {
+    width: 8px;
+    height: 8px;
+  }
+
+  .damage-popup {
+    font-size: 14px;
+  }
+
+  .popup-kill {
+    font-size: 16px;
+  }
+
+  .unit-player,
+  .unit-enemy {
+    padding: 1px 2px;
+  }
 }
