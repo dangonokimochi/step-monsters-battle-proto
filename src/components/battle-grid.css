@@ -115,27 +115,55 @@
   transform: scaleX(-1);
 }
 
-/* 味方・敵の区別 */
-.unit-player {
-  background: rgba(40, 100, 200, 0.35);
-  border: 2px solid #4a9eff;
-  border-radius: 6px;
-  padding: 2px 4px;
-}
-
-.unit-player .unit-sprite {
-  filter: drop-shadow(0 0 3px #4a9eff) drop-shadow(0 0 6px rgba(74, 158, 255, 0.4));
-}
-
+/* 味方・敵の区別 - 足元インジケーター方式 */
+.unit-player,
 .unit-enemy {
-  background: rgba(200, 50, 50, 0.35);
-  border: 2px solid #ff4a4a;
-  border-radius: 6px;
-  padding: 2px 4px;
+  position: relative;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+/* 足元の楕円インジケーター */
+.unit-player::before,
+.unit-enemy::before {
+  content: '';
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 10px;
+  border-radius: 50%;
+  z-index: 0;
+}
+
+.unit-player::before {
+  background: radial-gradient(ellipse, rgba(74, 158, 255, 0.7) 0%, rgba(74, 158, 255, 0) 70%);
+  box-shadow: 0 0 8px rgba(74, 158, 255, 0.5);
+}
+
+.unit-enemy::before {
+  background: radial-gradient(ellipse, rgba(255, 74, 74, 0.7) 0%, rgba(255, 74, 74, 0) 70%);
+  box-shadow: 0 0 8px rgba(255, 74, 74, 0.5);
+}
+
+/* スプライトのグロー（控えめに） */
+.unit-player .unit-sprite {
+  filter: drop-shadow(0 0 2px rgba(74, 158, 255, 0.5));
 }
 
 .unit-enemy .unit-sprite {
-  filter: drop-shadow(0 0 3px #ff4a4a) drop-shadow(0 0 6px rgba(255, 74, 74, 0.4));
+  filter: drop-shadow(0 0 2px rgba(255, 74, 74, 0.5));
+}
+
+/* HPバーの色でもチーム区別 */
+.unit-player .unit-hp-fill {
+  background: #4a9eff;
+}
+
+.unit-enemy .unit-hp-fill {
+  background: #ff6b6b;
 }
 
 /* HPバー */
@@ -235,8 +263,10 @@
     font-size: 16px;
   }
 
-  .unit-player,
-  .unit-enemy {
-    padding: 1px 2px;
+  .unit-player::before,
+  .unit-enemy::before {
+    width: 24px;
+    height: 7px;
+    bottom: 7px;
   }
 }
