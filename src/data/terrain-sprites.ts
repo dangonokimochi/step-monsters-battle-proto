@@ -1,4 +1,4 @@
-// 地形の8×8ドット絵データ（アニメーション対応）
+// 地形の16×16ドット絵データ（アニメーション対応）
 // モンスタースプライトと同じ方式: パレット文字 → カラーコード、'.' は透明
 
 interface TerrainSpriteDef {
@@ -20,164 +20,230 @@ function parseTerrainSprite(def: TerrainSpriteDef): ParsedTerrainSprite {
       [...row].map((ch) => (ch === '.' ? null : def.palette[ch] ?? null)),
     ),
   );
+  const h = def.frames[0]?.length ?? 16;
+  const w = def.frames[0]?.[0]?.length ?? 16;
   return {
-    width: 8,
-    height: 8,
+    width: w,
+    height: h,
     frames,
     frameDuration: def.frameDuration ?? 1000,
   };
 }
 
-// === 地形スプライト定義 ===
+// === 地形スプライト定義（16×16） ===
 
 const terrainDefs: Record<string, TerrainSpriteDef> = {
-  // 平地 - 草と土
+  // 平地 - 控えめな草地。モンスターの邪魔にならないよう色差を極小に
   plain: {
     palette: {
-      a: '#3d4a2e', // 暗い草
-      b: '#4a5c36', // 草ベース
-      c: '#566b3f', // 明るい草
-      d: '#3a3428', // 土
-      e: '#45402e', // 明るい土
+      a: '#3a4530', // ベース暗
+      b: '#3d4a33', // ベース
+      c: '#404e36', // わずかに明るい
     },
     frames: [
       [
-        'aabbabba',
-        'babcbabb',
-        'abbaabcb',
-        'ddbabbad',
-        'babbabba',
-        'abcbabba',
-        'babbcbab',
-        'aababbab',
+        'aabbbbabbbbbabba',
+        'bbabbbbbabbbbabb',
+        'bbbbbabbbbabbbbb',
+        'abbbbbbbbbbbbbba',
+        'bbbabbbbbbbbabbb',
+        'bbbbbbabbbbbbbbb',
+        'bbbbbbbbbbabbbbb',
+        'abbbbbbbbbbbbbab',
+        'bbbbabbbbbbbbbbb',
+        'bbbbbbbbbabbbbbb',
+        'bbabbbbbbbbbabbb',
+        'bbbbbbabbbbbbbb',
+        'bbbbbbbbbbbabbbb',
+        'abbbabbbbbbbbbbb',
+        'bbbbbbbbbbbbbabb',
+        'bbabbbbbabbbbabb',
       ],
     ],
   },
 
-  // 岩 - 灰色の大岩、ひび割れ
+  // 岩 - 大きな岩塊、影とハイライトで立体感
   rock: {
     palette: {
-      a: '#3a3535', // 暗い輪郭
-      b: '#5a5252', // 暗い岩
-      c: '#706666', // 岩ベース
-      d: '#887e7e', // 明るい岩
-      e: '#9e9494', // ハイライト
-      f: '#2e2a2a', // 地面影
+      a: '#2e2a2a', // 地面影
+      b: '#3a3535', // 暗い輪郭
+      c: '#504848', // 暗い岩
+      d: '#635a5a', // 岩ベース
+      e: '#786e6e', // 岩明るい
+      f: '#8a8080', // ハイライト
+      g: '#9a9090', // 頂点ハイライト
     },
     frames: [
       [
-        'ffaaaaff',
-        'fadddbaf',
-        'adeddbba',
-        'adeddcba',
-        'abddcbba',
-        'abccbbaf',
-        'fabbbcaf',
-        'ffaaaaff',
+        'aaaaabbbbbaaaaaa',
+        'aaabbccddcbbaaaa',
+        'aabcddeeeddcbaaa',
+        'abcdeefffeeddbbaa',
+        'abdeefggfeedcbbaa',
+        'bcdeefgffeeddcbaa',
+        'bcddeffeedddccbaa',
+        'bcddeeedddccbbaa',
+        'abcddddddccbbaaa',
+        'abccddddccbbbaaa',
+        'aabccccccbbbaaaa',
+        'aaabbcccbbaabaaa',
+        'aaaabbbbbaaaaaaa',
+        'aaaaabbbaaaaabaa',
+        'aaaaaabaaaaaaaba',
+        'aaaaaaaaaaaaaaaa',
       ],
     ],
   },
 
-  // 水 - 水面の波紋アニメーション
+  // 水 - 水面、波紋アニメーション
   water: {
     palette: {
-      a: '#1a3555', // 深い水
-      b: '#264a6e', // 水ベース
-      c: '#336688', // 中間
-      d: '#4488aa', // 明るい水
-      e: '#66aacc', // 波のハイライト
-      f: '#88ccee', // きらめき
+      a: '#1a3050', // 深い水
+      b: '#204060', // 水ベース
+      c: '#2a5578', // 中間
+      d: '#356a90', // 明るい水
+      e: '#4888aa', // 波ハイライト
+      f: '#5ca0c0', // きらめき
     },
-    frameDuration: 600,
+    frameDuration: 700,
     frames: [
       [
-        'aabbabba',
-        'babcbabb',
-        'bbdecbab',
-        'abcbabcb',
-        'babbdeab',
-        'abcbabba',
-        'babcbcba',
-        'aabababb',
+        'aabbbaabbbaabbba',
+        'babbbabbbbabbbab',
+        'bbbcbbbbbbbcbbbb',
+        'abbbbbcdbbbbbabb',
+        'bbbbbcdecbbabbbb',
+        'babbbbdbbbbbbabb',
+        'bbbbbbbbbbbbbbbb',
+        'bbbabbbbbbcbabbb',
+        'abbbbbabbcdbbabb',
+        'bbbcbbbbbdebbbbb',
+        'bbbbcdbbbcbbbbab',
+        'abbbcdebbbbabbbb',
+        'bbbbbdbbbbbbbabb',
+        'bbbbbbbabbbbbbbb',
+        'abbbabbbbbbabbba',
+        'babbbbabbabbbabb',
       ],
       [
-        'aabababb',
-        'babbcbba',
-        'abcbabcb',
-        'bbdecbab',
-        'abcbabba',
-        'babbdeba',
-        'abcbabcb',
-        'aabbabba',
+        'babbbbabbabbbabb',
+        'abbbabbbbbbabbba',
+        'bbbbbbbabbbbbbbb',
+        'bbbbbdbbbbbcbbbb',
+        'abbbcdebbbbbbbab',
+        'bbbbcdbbbcbabbbb',
+        'bbbcbbbbcdebbbbb',
+        'abbbbbabbdebbbab',
+        'bbbbbbbbbbbbbbbb',
+        'babbbbdbbbbbbabb',
+        'bbbbbcdecbbabbbb',
+        'abbbbbcdbbbbbabb',
+        'bbbcbbbbbbbcbbbb',
+        'babbbabbbbabbbab',
+        'aabbbaabbbaabbba',
+        'bbbabbbbabbbabbb',
       ],
       [
-        'aabbcbba',
-        'babcbabb',
-        'abcbdeba',
-        'babcbcba',
-        'abdeabcb',
-        'babbcbab',
-        'abcbabba',
-        'aababcba',
+        'bbbabbbbabbbabbb',
+        'aabbbaabbbaabbba',
+        'bbbbbabbbbabbbbb',
+        'babbbbbbbbbcbbab',
+        'bbbbbbcbbcdbbabb',
+        'abbbcdbbbdebbbbb',
+        'bbbcdebbbcbbabbb',
+        'bbbbbdbbbbbbbabb',
+        'abbbbbbbbbbbbbbb',
+        'bbbbbbbcbbbbabbb',
+        'abbbbbcdbbbbbbab',
+        'bbbabbcdecbbbbbb',
+        'bbbbbbbdbbbabbbb',
+        'bbbcbbbbbbbbbbbb',
+        'babbbbabbbabbbab',
+        'aabbbaabbbaabbba',
       ],
     ],
   },
 
-  // 茂み - 密な緑の茂み
+  // 茂み - こんもりした茂み、葉の揺れアニメーション
   bush: {
     palette: {
-      a: '#1e3a1e', // 暗い葉（影）
-      b: '#2a5a2a', // 葉ベース
-      c: '#389038', // 明るい葉
-      d: '#4aaa4a', // ハイライト
-      e: '#60c060', // 明るいハイライト
-      f: '#3d4a2e', // 地面
+      a: '#2a3a22', // 地面
+      b: '#1e3a1e', // 暗い葉影
+      c: '#2a5a2a', // 葉ベース
+      d: '#348a34', // 明るい葉
+      e: '#40a040', // ハイライト
+      f: '#50b850', // 明るいハイライト
     },
-    frameDuration: 800,
+    frameDuration: 900,
     frames: [
       [
-        'ffabbaff',
-        'fabccbaf',
-        'abcdcbba',
-        'bcdedbba',
-        'abdccdba',
-        'abcbcbba',
-        'fabccbaf',
-        'ffabbaff',
+        'aaaaaabbbbaaaaba',
+        'aaaabbccccbbaaaa',
+        'aaabccdddccbbaaa',
+        'aabccddeeddccbaa',
+        'abccdeefeddccbaa',
+        'abcddeffeddccbaa',
+        'abccdeedddccbaaa',
+        'aabccdddccbbbaba',
+        'aaabccccbbaaabba',
+        'aaabbcccddcbbaaa',
+        'aaabcddeedccbbaa',
+        'aabcddeffeddcbaa',
+        'abcddeefeeddcbaa',
+        'abccddeddddccbaa',
+        'aabccccddccbbaaa',
+        'aaabbbccccbbaaaa',
       ],
       [
-        'ffabbaff',
-        'fabcdbaf',
-        'abcecbba',
-        'bcdecbba',
-        'abddcdba',
-        'abcbcbba',
-        'fabcbbaf',
-        'ffabbaff',
+        'aaaaaabbbbaaaaba',
+        'aaaabbccccbbaaaa',
+        'aaabccddeccbbaaa',
+        'aabccddefddccbaa',
+        'abccddeffddccbaa',
+        'abcddeefeeccbbaa',
+        'abccdeedddccbaaa',
+        'aabccdddccbbbaba',
+        'aaabccccbbaaabba',
+        'aaabbccdddcbbaaa',
+        'aaabcddeedccbbaa',
+        'aabcddeefeeccbaa',
+        'abcddeffeddccbaa',
+        'abccddeeddddcbaa',
+        'aabccccddccbbaaa',
+        'aaabbbccccbbaaaa',
       ],
     ],
   },
 
-  // 高台 - 盛り上がった地面、段差表現
+  // 高台 - 段差のある丘、上面が明るく側面に影
   hill: {
     palette: {
-      a: '#3a3020', // 暗い影
-      b: '#5a4a30', // 土台
-      c: '#7a6a45', // 台地ベース
-      d: '#8e7e55', // 台地明るい面
-      e: '#a09068', // ハイライト
-      f: '#b0a078', // トップハイライト
+      a: '#332a1c', // 地面影
+      b: '#4a3c25', // 暗い土
+      c: '#5e4e32', // 側面
+      d: '#726040', // 台地ベース
+      e: '#887450', // 台地明るい
+      f: '#9e8860', // ハイライト
+      g: '#b09a70', // 頂点
     },
     frames: [
       [
-        'aabccbaa',
-        'abddedba',
-        'bcdefedb',
-        'bdefeecb',
-        'bdeeddcb',
-        'abddcbba',
-        'abccbbaa',
-        'aabbaaaa',
+        'aaaaaabbbbaaaaba',
+        'aaaabbcdddbbaaaa',
+        'aaabcddeeedcbaaa',
+        'aabcdeeffeedcbaa',
+        'abcdeefggfeedcba',
+        'abcdeefgffeeccba',
+        'abcddeeffeddccba',
+        'abcdddeeedddcbaa',
+        'abccdddddddccbaa',
+        'abcccdddddccbbaa',
+        'aabbcccddccbbaaa',
+        'aaabbcccccbbaaaa',
+        'aaaabbcccbbaaaaa',
+        'aaaaabbbbbaaaaaa',
+        'aaaaaabbbaaaaaaa',
+        'aaaaaaaaaaaaaaaa',
       ],
     ],
   },
