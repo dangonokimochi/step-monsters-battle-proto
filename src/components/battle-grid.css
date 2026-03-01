@@ -1,7 +1,37 @@
 .grid-container {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+}
+
+/* 陣地ラベル */
+.zone-labels {
+  display: flex;
+  width: 100%;
+  max-width: calc(52px * 6 + 4px);
+  margin-bottom: 4px;
+}
+
+.zone-label {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  padding: 2px 0;
+  border-radius: 3px 3px 0 0;
+}
+
+.zone-label-player {
+  color: rgba(74, 158, 255, 0.9);
+  background: rgba(74, 158, 255, 0.1);
+  border-bottom: 2px solid rgba(74, 158, 255, 0.4);
+}
+
+.zone-label-enemy {
+  color: rgba(255, 74, 74, 0.9);
+  background: rgba(255, 74, 74, 0.1);
+  border-bottom: 2px solid rgba(255, 74, 74, 0.4);
 }
 
 .grid {
@@ -18,14 +48,28 @@
 }
 
 .cell {
-  width: 64px;
-  height: 64px;
+  width: 52px;
+  height: 52px;
   border: 1px solid #555;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   transition: background-color 0.15s;
+}
+
+/* 陣地の区別 - 控えめなボーダーカラー */
+.cell-player-zone {
+  border-color: rgba(74, 158, 255, 0.2);
+}
+
+.cell-enemy-zone {
+  border-color: rgba(255, 74, 74, 0.2);
+}
+
+/* 陣地の境界線 */
+.cell-divider {
+  border-left: 2px solid rgba(255, 255, 255, 0.25);
 }
 
 /* 地形色（テクスチャの下地・フォールバック） */
@@ -94,6 +138,35 @@
   50% { opacity: 1; }
 }
 
+/* 配置可能マス */
+.cell-placeable {
+  cursor: pointer;
+}
+
+.cell-placeable::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border: 2px dashed rgba(74, 158, 255, 0.5);
+  border-radius: 3px;
+  background: rgba(74, 158, 255, 0.08);
+  z-index: 1;
+  animation: placeable-pulse 2s ease-in-out infinite;
+}
+
+.placeable-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(74, 158, 255, 0.4);
+  z-index: 2;
+}
+
+@keyframes placeable-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
 /* 攻撃対象ハイライト */
 .cell-attackable {
   background-color: rgba(255, 74, 74, 0.3) !important;
@@ -149,11 +222,11 @@
 .unit-enemy::before {
   content: '';
   position: absolute;
-  bottom: 10px;
+  bottom: 6px;
   left: 50%;
   transform: translateX(-50%);
-  width: 36px;
-  height: 10px;
+  width: 28px;
+  height: 8px;
   border-radius: 50%;
   z-index: 0;
 }
@@ -186,10 +259,111 @@
   background: #ff6b6b;
 }
 
+/* === 戦闘アニメーション === */
+
+/* 攻撃アニメーション: 近接（突進バウンス） */
+.unit-attack-melee {
+  animation: attack-melee 0.4s ease-in-out;
+}
+
+.unit-attack-melee .unit-sprite {
+  animation: none !important;
+}
+
+@keyframes attack-melee {
+  0% { transform: translateY(0) scale(1); }
+  25% { transform: translateY(-10px) scale(1.15); }
+  50% { transform: translateY(-4px) scale(1.05); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* 攻撃アニメーション: 遠距離（詠唱グロー） */
+.unit-attack-ranged {
+  animation: attack-ranged 0.4s ease-in-out;
+}
+
+.unit-attack-ranged .unit-sprite {
+  animation: none !important;
+  filter: brightness(1.5) drop-shadow(0 0 8px rgba(255, 200, 50, 0.8)) !important;
+}
+
+@keyframes attack-ranged {
+  0% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-4px) scale(1.08); }
+  70% { transform: translateY(-4px) scale(1.08); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* 攻撃アニメーション: 回復（ヒーリング詠唱） */
+.unit-attack-heal {
+  animation: attack-heal 0.4s ease-in-out;
+}
+
+.unit-attack-heal .unit-sprite {
+  animation: none !important;
+  filter: brightness(1.3) drop-shadow(0 0 10px rgba(74, 255, 74, 0.8)) !important;
+}
+
+@keyframes attack-heal {
+  0% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-6px) scale(1.05); }
+  70% { transform: translateY(-6px) scale(1.05); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* 被ダメージアニメーション */
+.unit-hit {
+  animation: hit-shake 0.4s ease-in-out;
+}
+
+.unit-hit .unit-sprite {
+  animation: none !important;
+}
+
+.unit-hit-damage .unit-sprite,
+.unit-hit-kill .unit-sprite {
+  filter: brightness(2) drop-shadow(0 0 6px rgba(255, 74, 74, 0.8)) !important;
+}
+
+.unit-hit-heal .unit-sprite {
+  filter: brightness(1.3) drop-shadow(0 0 8px rgba(74, 255, 74, 0.8)) !important;
+}
+
+.unit-hit-miss {
+  animation: miss-dodge 0.3s ease-in-out;
+}
+
+@keyframes hit-shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes miss-dodge {
+  0% { transform: translateX(0); }
+  30% { transform: translateX(-6px); opacity: 0.6; }
+  60% { transform: translateX(3px); opacity: 0.8; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+/* 撃破時のフェードアウト */
+.unit-hit-kill {
+  animation: kill-fade 0.6s ease-out forwards;
+}
+
+@keyframes kill-fade {
+  0% { transform: scale(1); opacity: 1; filter: brightness(2); }
+  50% { transform: scale(1.2); opacity: 0.5; filter: brightness(3); }
+  100% { transform: scale(0.5); opacity: 0; filter: brightness(0); }
+}
+
 /* HPバー */
 .unit-hp-bar {
-  width: 40px;
-  height: 4px;
+  width: 32px;
+  height: 3px;
   background: #222;
   border-radius: 2px;
   overflow: hidden;
@@ -204,10 +378,10 @@
 /* ダメージポップアップ */
 .damage-popup {
   position: absolute;
-  top: 0;
+  top: -2px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 18px;
+  font-size: 14px;
   font-weight: bold;
   pointer-events: none;
   z-index: 10;
@@ -249,11 +423,285 @@
   }
 }
 
+/* === 技名ポップアップ === */
+.skill-name-popup {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: bold;
+  color: #ffd700;
+  white-space: nowrap;
+  z-index: 10;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9), 0 0 8px rgba(255, 215, 0, 0.4);
+  pointer-events: none;
+  animation: skill-name-float 0.4s ease-out forwards;
+}
+
+@keyframes skill-name-float {
+  0% { opacity: 0; transform: translateX(-50%) translateY(4px); }
+  30% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(-3px); }
+}
+
+/* === 画面シェイク（撃破時） === */
+.grid-shake {
+  animation: grid-shake 0.4s ease-out;
+}
+
+@keyframes grid-shake {
+  0%, 100% { transform: translate(0, 0); }
+  15% { transform: translate(-3px, -2px); }
+  30% { transform: translate(3px, 2px); }
+  45% { transform: translate(-2px, 1px); }
+  60% { transform: translate(2px, -1px); }
+  75% { transform: translate(-1px, 1px); }
+}
+
+/* === セルヒットフラッシュ === */
+.cell-hit-flash {
+  animation: cell-flash 0.2s ease-out;
+}
+
+@keyframes cell-flash {
+  0% { background-color: rgba(255, 255, 255, 0.5) !important; }
+  100% { background-color: transparent !important; }
+}
+
+/* === 技エフェクトオーバーレイ === */
+.skill-effect {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* 斬撃 - X字の斬撃線 */
+.skill-effect-slash::before,
+.skill-effect-slash::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140%;
+  height: 3px;
+  background: linear-gradient(90deg,
+    transparent 5%,
+    rgba(200, 230, 255, 0.9) 35%,
+    #fff 50%,
+    rgba(200, 230, 255, 0.9) 65%,
+    transparent 95%
+  );
+  animation: fx-slash-line 0.35s ease-out forwards;
+}
+
+.skill-effect-slash::before {
+  transform: translate(-50%, -50%) rotate(45deg) scaleX(0);
+}
+
+.skill-effect-slash::after {
+  transform: translate(-50%, -50%) rotate(-45deg) scaleX(0);
+  animation-delay: 0.05s;
+}
+
+@keyframes fx-slash-line {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r, 45deg)) scaleX(0); }
+  20% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--r, 45deg)) scaleX(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--r, 45deg)) scaleX(1.3); }
+}
+
+.skill-effect-slash::before { --r: 45deg; }
+.skill-effect-slash::after { --r: -45deg; }
+
+/* 衝撃 - 拡大リング */
+.skill-effect-impact::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80%;
+  height: 80%;
+  border: 3px solid rgba(255, 220, 100, 0.9);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.2);
+  animation: fx-impact-ring 0.4s ease-out forwards;
+  box-shadow: 0 0 12px rgba(255, 200, 50, 0.6), inset 0 0 8px rgba(255, 200, 50, 0.3);
+}
+
+@keyframes fx-impact-ring {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+  60% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(1.4); opacity: 0; }
+}
+
+/* 炎 - 火炎バースト */
+.skill-effect-fire {
+  background: radial-gradient(ellipse at center bottom,
+    rgba(255, 80, 0, 0.9) 0%,
+    rgba(255, 160, 0, 0.6) 30%,
+    rgba(255, 200, 0, 0.3) 55%,
+    transparent 75%
+  );
+  animation: fx-fire-burst 0.5s ease-out forwards;
+}
+
+@keyframes fx-fire-burst {
+  0% { opacity: 0; transform: scaleY(0.3) translateY(40%); }
+  25% { opacity: 1; transform: scaleY(1.2) translateY(-5%); }
+  100% { opacity: 0; transform: scaleY(0.8) translateY(-25%); }
+}
+
+/* 霊 - エーテルエネルギー */
+.skill-effect-spirit {
+  background: radial-gradient(circle at center,
+    rgba(180, 100, 255, 0.8) 0%,
+    rgba(120, 60, 200, 0.4) 40%,
+    transparent 70%
+  );
+  animation: fx-spirit-swirl 0.5s ease-in-out forwards;
+}
+
+@keyframes fx-spirit-swirl {
+  0% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+  40% { opacity: 1; transform: scale(1.1) rotate(120deg); }
+  100% { opacity: 0; transform: scale(0.7) rotate(240deg); }
+}
+
+/* 投擲 - 着弾エフェクト */
+.skill-effect-projectile::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(circle,
+    rgba(220, 200, 160, 0.9) 0%,
+    rgba(180, 160, 120, 0.5) 50%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0.3);
+  animation: fx-projectile-hit 0.35s ease-out forwards;
+}
+
+@keyframes fx-projectile-hit {
+  0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+  30% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+}
+
+/* 毒 - 毒霧 */
+.skill-effect-poison {
+  background: radial-gradient(ellipse at center,
+    rgba(100, 200, 50, 0.6) 0%,
+    rgba(80, 160, 80, 0.4) 35%,
+    rgba(60, 120, 60, 0.2) 60%,
+    transparent 80%
+  );
+  animation: fx-poison-cloud 0.6s ease-out forwards;
+}
+
+@keyframes fx-poison-cloud {
+  0% { opacity: 0; transform: scale(0.4); }
+  30% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(1.3) translateY(-10%); }
+}
+
+/* 回復 - ヒーリングスパークル */
+.skill-effect-heal {
+  background: radial-gradient(circle at center,
+    rgba(100, 255, 150, 0.5) 0%,
+    rgba(100, 255, 100, 0.2) 40%,
+    transparent 70%
+  );
+  animation: fx-heal-glow 0.6s ease-out forwards;
+}
+
+.skill-effect-heal::before,
+.skill-effect-heal::after {
+  content: '+';
+  position: absolute;
+  color: rgba(100, 255, 150, 0.9);
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: 0 0 6px rgba(100, 255, 150, 0.8);
+  pointer-events: none;
+  animation: fx-heal-sparkle 0.6s ease-out forwards;
+}
+
+.skill-effect-heal::before {
+  top: 25%;
+  left: 25%;
+}
+
+.skill-effect-heal::after {
+  top: 35%;
+  right: 20%;
+  animation-delay: 0.1s;
+}
+
+@keyframes fx-heal-glow {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes fx-heal-sparkle {
+  0% { opacity: 0; transform: translateY(0) scale(0.5); }
+  30% { opacity: 1; transform: translateY(-5px) scale(1.2); }
+  100% { opacity: 0; transform: translateY(-18px) scale(0.5); }
+}
+
+/* ブレス - 火炎放射 */
+.skill-effect-breath {
+  background: linear-gradient(to top,
+    rgba(255, 100, 0, 0.8) 0%,
+    rgba(255, 180, 0, 0.5) 35%,
+    rgba(255, 220, 50, 0.3) 65%,
+    transparent 100%
+  );
+  animation: fx-breath-wave 0.5s ease-out forwards;
+}
+
+@keyframes fx-breath-wave {
+  0% { opacity: 0; transform: scaleX(0.3) scaleY(0.3); }
+  30% { opacity: 1; transform: scaleX(1.3) scaleY(1.1); }
+  100% { opacity: 0; transform: scaleX(0.8) scaleY(1.3) translateY(-10%); }
+}
+
+/* 爪 - 3本の引っかき傷 */
+.skill-effect-claw {
+  background: repeating-linear-gradient(
+    160deg,
+    transparent 0px,
+    transparent 7px,
+    rgba(255, 255, 255, 0.8) 7px,
+    rgba(255, 255, 255, 0.8) 9px,
+    transparent 9px,
+    transparent 16px
+  );
+  animation: fx-claw-scratch 0.35s ease-out forwards;
+}
+
+@keyframes fx-claw-scratch {
+  0% { opacity: 0; clip-path: inset(100% 0 0 0); }
+  30% { opacity: 1; clip-path: inset(0 0 0 0); }
+  70% { opacity: 0.8; clip-path: inset(0 0 0 0); }
+  100% { opacity: 0; clip-path: inset(0 0 0 0); }
+}
+
 /* モバイル: セルを画面幅に合わせて縮小 */
 @media (max-width: 900px) {
   .cell {
     width: calc((100vw - 24px) / 6);
     height: calc((100vw - 24px) / 6);
+  }
+
+  .zone-labels {
+    max-width: calc((100vw - 24px) + 4px);
   }
 
   .unit-sprite {
@@ -294,5 +742,9 @@
     width: 24px;
     height: 7px;
     bottom: 7px;
+  }
+
+  .zone-label {
+    font-size: 9px;
   }
 }

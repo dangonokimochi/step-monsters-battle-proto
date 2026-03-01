@@ -11,6 +11,9 @@ export interface Position {
   row: number; // 0-(GRID_ROWS-1), 上→下
 }
 
+// === 技エフェクトタイプ ===
+export type SkillEffectType = 'slash' | 'impact' | 'fire' | 'spirit' | 'projectile' | 'poison' | 'heal' | 'breath' | 'claw';
+
 // === 技 ===
 export interface Skill {
   id: string;
@@ -20,6 +23,7 @@ export interface Skill {
   defPen: number;      // 防御貫通率 0.0〜1.0
   mpCost: number;      // MP消費（0=通常攻撃）
   power: number;       // 威力倍率
+  effectType?: SkillEffectType; // エフェクトタイプ
   isHeal?: boolean;    // 回復技フラグ
   healAmount?: number; // 回復量（固定値）
 }
@@ -95,11 +99,16 @@ export interface GridCell {
 
 export type Grid = GridCell[][];
 
-// === ターンフェーズ ===
-// move: 移動フェーズ（任意）
-// action: 行動フェーズ（通常攻撃・スキル・待機）
-// select_target: 攻撃対象を選択中
+// === ターンフェーズ（内部管理用） ===
 export type TurnPhase = 'move' | 'action' | 'select_target';
+
+// === オートバトルのアニメーション状態 ===
+export type AnimationPhase =
+  | { type: 'idle' }
+  | { type: 'turn_start'; unitId: string }
+  | { type: 'moving'; unitId: string; from: Position; to: Position }
+  | { type: 'attacking'; attackerId: string; targetId: string; skillName: string; effectType: SkillEffectType }
+  | { type: 'damaged'; targetId: string; amount: number; resultType: 'damage' | 'heal' | 'miss' | 'kill'; effectType: SkillEffectType };
 
 // === 戦闘ログ ===
 export interface BattleLog {
@@ -115,6 +124,24 @@ export interface DamagePopup {
   position: Position;
   text: string;
   type: 'damage' | 'heal' | 'miss' | 'kill';
+}
+
+// === 配置キュー ===
+export interface PlacementQueue {
+  species: MonsterSpecies;
+  index: number;
+}
+
+// === バトル速度 ===
+export type BattleSpeed = 1 | 2 | 3;
+
+// === AI判断の保持（アニメーション間で引き継ぐ） ===
+export interface PendingAction {
+  moveTarget: Position | null;
+  skillName: string;
+  skillId: string;
+  attackTarget: string; // ユニットID（空文字 = 攻撃なし）
+  effectType: SkillEffectType;
 }
 
 // === 戦闘状態 ===
@@ -136,4 +163,14 @@ export interface BattleState {
   damagePopups: DamagePopup[];
   popupCounter: number;
   result: 'none' | 'win' | 'lose';
+
+  // オートバトル用
+  animation: AnimationPhase;
+  pendingAction: PendingAction | null;
+  isPaused: boolean;
+  battleSpeed: BattleSpeed;
+
+  // 配置フェーズ用
+  placementQueue: PlacementQueue[];
+  placementReady: boolean; // 全ユニット配置済みか
 }

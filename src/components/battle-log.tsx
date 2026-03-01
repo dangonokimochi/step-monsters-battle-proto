@@ -13,16 +13,18 @@ function teamClass(team?: 'player' | 'enemy'): string {
 }
 
 export function BattleLogPanel({ logs }: BattleLogPanelProps) {
-  const endRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight;
+    }
   }, [logs.length]);
 
   return (
     <div className="battle-log">
       <h3 className="log-title">戦闘ログ</h3>
-      <div className="log-list">
+      <div className="log-list" ref={listRef}>
         {logs.map((log) => (
           <div key={log.id} className={`log-entry ${teamClass(log.team)}`}>
             {log.team && (
@@ -33,7 +35,6 @@ export function BattleLogPanel({ logs }: BattleLogPanelProps) {
             {log.message}
           </div>
         ))}
-        <div ref={endRef} />
       </div>
     </div>
   );

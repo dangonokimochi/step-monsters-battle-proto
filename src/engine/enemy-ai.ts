@@ -1,11 +1,15 @@
-import type { BattleUnit, BattleState, Position, Skill } from '../types';
+import type { BattleUnit, BattleState, Position, Skill, Team } from '../types';
 import { calcMovablePositions } from './movement';
 import { getAttackTargets, manhattanDistance, calcDamage } from './combat';
 
-interface AIDecision {
+export interface AIDecision {
   moveTarget: Position | null; // 移動先（nullなら移動しない）
   skill: Skill;
   attackTarget: string; // 攻撃対象のユニットID
+}
+
+function opposingTeam(team: Team): Team {
+  return team === 'player' ? 'enemy' : 'player';
 }
 
 // 予測ダメージ（回避は考慮しない）
@@ -14,18 +18,19 @@ function estimateDamage(attacker: BattleUnit, target: BattleUnit, skill: Skill):
   return calcDamage(attacker.atk, target.def, skill.power, skill.defPen);
 }
 
-// 敵AIの行動を決定
-export function decideEnemyAction(
+// AIの行動を決定（両チーム共通）
+export function decideAction(
   unit: BattleUnit,
   state: BattleState,
 ): AIDecision | null {
-  const playerUnits = state.units.filter(
-    (u) => u.team === 'player' && u.isAlive,
+  const enemyTeam = opposingTeam(unit.team);
+  const enemies = state.units.filter(
+    (u) => u.team === enemyTeam && u.isAlive,
   );
-  if (playerUnits.length === 0) return null;
+  if (enemies.length === 0) return null;
 
   // 現在位置から攻撃可能かチェック
-  const currentBest = findBestAttack(unit, unit.position, state);
+  const currentBest = findBestAttack(unit, state);
 
   // 移動可能位置を取得
   const movable = calcMovablePositions(unit, state.grid);
@@ -36,7 +41,7 @@ export function decideEnemyAction(
 
   // 現在位置での攻撃（移動なし）
   if (currentBest) {
-    const score = evaluateAttack(unit, currentBest.target, currentBest.skill, unit.position, state);
+    const score = evaluateAttack(unit, currentBest.target, currentBest.skill);
     if (score > bestScore) {
       bestScore = score;
       bestDecision = {
@@ -49,12 +54,11 @@ export function decideEnemyAction(
 
   // 各移動先を評価
   for (const pos of movable) {
-    // 仮想的にユニットを移動させて攻撃対象を検索
     const movedUnit = { ...unit, position: pos };
-    const attack = findBestAttackForMovedUnit(movedUnit, state);
+    const attack = findBestAttackForMovedUnit(movedUnit, unit.team, state);
 
     if (attack) {
-      const score = evaluateAttack(unit, attack.target, attack.skill, pos, state);
+      const score = evaluateAttack(unit, attack.target, attack.skill);
       if (score > bestScore) {
         bestScore = score;
         bestDecision = {
@@ -66,11 +70,10 @@ export function decideEnemyAction(
     }
   }
 
-  // 攻撃対象がない場合、最も近い味方に向かって移動
+  // 攻撃対象がない場合、最も近い敵に向かって移動
   if (!bestDecision) {
-    const closest = findClosestPlayer(unit, playerUnits);
+    const closest = findClosestEnemy(unit, enemies);
     if (closest && movable.length > 0) {
-      // 最も近い味方に近づく移動先を選択
       let bestPos = movable[0];
       let bestDist = Infinity;
       for (const pos of movable) {
@@ -83,7 +86,7 @@ export function decideEnemyAction(
 
       return {
         moveTarget: bestPos,
-        skill: unit.skills[0], // 通常攻撃
+        skill: unit.skills[0],
         attackTarget: '', // 攻撃対象なし
       };
     }
@@ -93,10 +96,17 @@ export function decideEnemyAction(
   return bestDecision;
 }
 
+// 後方互換性のためのエイリアス
+export function decideEnemyAction(
+  unit: BattleUnit,
+  state: BattleState,
+): AIDecision | null {
+  return decideAction(unit, state);
+}
+
 // 現在位置から最善の攻撃を探す
 function findBestAttack(
   unit: BattleUnit,
-  _pos: Position,
   state: BattleState,
 ): { skill: Skill; target: BattleUnit } | null {
   let bestDamage = 0;
@@ -109,7 +119,6 @@ function findBestAttack(
     const targets = getAttackTargets(unit, skill, state.units, state.grid);
     for (const target of targets) {
       const dmg = estimateDamage(unit, target, skill);
-      // HP最低の味方を優先（集中攻撃）
       const priorityBonus = target.hp <= dmg ? 1000 : (1 - target.hp / target.maxHp) * 100;
       const score = dmg + priorityBonus;
 
@@ -123,11 +132,13 @@ function findBestAttack(
   return bestResult;
 }
 
-// 移動後ユニットの攻撃候補（gridのunitIdは更新しない簡易版）
+// 移動後ユニットの攻撃候補
 function findBestAttackForMovedUnit(
   movedUnit: BattleUnit,
+  team: Team,
   state: BattleState,
 ): { skill: Skill; target: BattleUnit } | null {
+  const enemyTeam = opposingTeam(team);
   let bestScore = 0;
   let bestResult: { skill: Skill; target: BattleUnit } | null = null;
 
@@ -137,7 +148,7 @@ function findBestAttackForMovedUnit(
 
     const targets = getAttackTargets(movedUnit, skill, state.units, state.grid);
     for (const target of targets) {
-      if (target.team !== 'player') continue;
+      if (target.team !== enemyTeam) continue;
       const dmg = estimateDamage(movedUnit, target, skill);
       const priorityBonus = target.hp <= dmg ? 1000 : (1 - target.hp / target.maxHp) * 100;
       const score = dmg + priorityBonus;
@@ -153,32 +164,28 @@ function findBestAttackForMovedUnit(
 }
 
 function evaluateAttack(
-  _unit: BattleUnit,
+  unit: BattleUnit,
   target: BattleUnit,
   skill: Skill,
-  _pos: Position,
-  _state: BattleState,
 ): number {
-  const dmg = calcDamage(_unit.atk, target.def, skill.power, skill.defPen);
-  // 倒せるならボーナス
+  const dmg = calcDamage(unit.atk, target.def, skill.power, skill.defPen);
   const killBonus = target.hp <= dmg ? 500 : 0;
-  // HP低い相手優先
   const hpRatio = 1 - target.hp / target.maxHp;
   return dmg + killBonus + hpRatio * 100;
 }
 
-function findClosestPlayer(
+function findClosestEnemy(
   unit: BattleUnit,
-  players: BattleUnit[],
+  enemies: BattleUnit[],
 ): BattleUnit | null {
   let closest: BattleUnit | null = null;
   let minDist = Infinity;
 
-  for (const p of players) {
-    const dist = manhattanDistance(unit.position, p.position);
+  for (const e of enemies) {
+    const dist = manhattanDistance(unit.position, e.position);
     if (dist < minDist) {
       minDist = dist;
-      closest = p;
+      closest = e;
     }
   }
 

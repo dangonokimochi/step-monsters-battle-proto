@@ -1,0 +1,144 @@
+.placement-panel {
+  background: #2a2a2a;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.placement-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.placement-title {
+  margin: 0;
+  font-size: 14px;
+  color: #ffd700;
+}
+
+.placement-count {
+  font-size: 13px;
+  color: #aaa;
+  background: #333;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.placement-hint {
+  margin: 0;
+  font-size: 13px;
+  color: #88bbff;
+}
+
+.placement-next {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #333;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(74, 158, 255, 0.3);
+}
+
+.placement-next-label {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.placement-next-monster {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.placement-next-name {
+  font-size: 14px;
+  font-weight: bold;
+  color: #6ab4ff;
+}
+
+.placement-sprite {
+  image-rendering: pixelated;
+}
+
+.placement-sprite-small {
+  image-rendering: pixelated;
+}
+
+.placement-queue {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.placement-queue-label {
+  font-size: 11px;
+  color: #888;
+}
+
+.placement-queue-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.placement-queue-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #2e2e2e;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #444;
+}
+
+.placement-queue-name {
+  font-size: 12px;
+  color: #ccc;
+}
+
+.placement-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.placement-btn {
+  padding: 6px 12px;
+  border: 1px solid #666;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  flex: 1;
+}
+
+.btn-auto {
+  background: #3a4a5a;
+  color: #aad4ff;
+}
+
+.btn-auto:hover {
+  background: #4a5a6a;
+}
+
+.btn-start {
+  background: #3a5a3a;
+  color: #aaffaa;
+  border-color: #5a8a5a;
+  animation: start-glow 2s ease-in-out infinite;
+}
+
+.btn-start:hover {
+  background: #4a6a4a;
+}
+
+@keyframes start-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(74, 255, 74, 0.3); }
+  50% { box-shadow: 0 0 16px rgba(74, 255, 74, 0.6); }
+}
