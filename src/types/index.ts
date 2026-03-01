@@ -95,11 +95,16 @@ export interface GridCell {
 
 export type Grid = GridCell[][];
 
-// === ターンフェーズ ===
-// move: 移動フェーズ（任意）
-// action: 行動フェーズ（通常攻撃・スキル・待機）
-// select_target: 攻撃対象を選択中
+// === ターンフェーズ（内部管理用） ===
 export type TurnPhase = 'move' | 'action' | 'select_target';
+
+// === オートバトルのアニメーション状態 ===
+export type AnimationPhase =
+  | { type: 'idle' }
+  | { type: 'turn_start'; unitId: string }
+  | { type: 'moving'; unitId: string; from: Position; to: Position }
+  | { type: 'attacking'; attackerId: string; targetId: string; skillName: string }
+  | { type: 'damaged'; targetId: string; amount: number; resultType: 'damage' | 'heal' | 'miss' | 'kill' };
 
 // === 戦闘ログ ===
 export interface BattleLog {
@@ -116,6 +121,15 @@ export interface DamagePopup {
   text: string;
   type: 'damage' | 'heal' | 'miss' | 'kill';
 }
+
+// === 配置キュー ===
+export interface PlacementQueue {
+  species: MonsterSpecies;
+  index: number;
+}
+
+// === バトル速度 ===
+export type BattleSpeed = 1 | 2 | 3;
 
 // === 戦闘状態 ===
 export interface BattleState {
@@ -136,4 +150,13 @@ export interface BattleState {
   damagePopups: DamagePopup[];
   popupCounter: number;
   result: 'none' | 'win' | 'lose';
+
+  // オートバトル用
+  animation: AnimationPhase;
+  isPaused: boolean;
+  battleSpeed: BattleSpeed;
+
+  // 配置フェーズ用
+  placementQueue: PlacementQueue[];
+  placementReady: boolean; // 全ユニット配置済みか
 }

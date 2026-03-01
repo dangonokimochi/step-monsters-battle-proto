@@ -6,6 +6,7 @@ import type {
   MonsterSpecies,
   Position,
   Team,
+  PlacementQueue,
 } from '../types';
 import { GRID_COLS, GRID_ROWS } from '../types';
 
@@ -70,47 +71,15 @@ function placeRandomTerrain(grid: Grid): void {
   }
 }
 
-// 味方の初期配置（左側 col 0〜2 にランダム配置）
+// 敵の初期配置（右側 col 3〜5 にランダム配置）
 const PLAYER_COLS = Math.floor(GRID_COLS / 2); // 3列
 
-function placePlayerUnits(
+function placeEnemyUnits(
   monsters: MonsterSpecies[],
   grid: Grid,
 ): BattleUnit[] {
   const units: BattleUnit[] = [];
   const usedPositions = new Set<string>();
-
-  monsters.forEach((species, index) => {
-    let pos: Position;
-    do {
-      pos = {
-        col: Math.floor(Math.random() * PLAYER_COLS), // col 0〜2
-        row: Math.floor(Math.random() * GRID_ROWS),
-      };
-    } while (
-      usedPositions.has(`${pos.row},${pos.col}`) ||
-      grid[pos.row][pos.col].terrain === 'rock'
-    );
-
-    usedPositions.add(`${pos.row},${pos.col}`);
-    const unit = createBattleUnit(species, 'player', pos, index);
-    grid[pos.row][pos.col].unitId = unit.id;
-    units.push(unit);
-  });
-
-  return units;
-}
-
-// 敵の初期配置（右側 col 3〜5 にランダム配置）
-function placeEnemyUnits(
-  monsters: MonsterSpecies[],
-  grid: Grid,
-  existingUnits: BattleUnit[],
-): BattleUnit[] {
-  const units: BattleUnit[] = [];
-  const usedPositions = new Set<string>(
-    existingUnits.map((u) => `${u.position.row},${u.position.col}`),
-  );
 
   monsters.forEach((species, index) => {
     let pos: Position;
@@ -147,7 +116,8 @@ export function calcTurnOrder(units: BattleUnit[]): string[] {
     .map((u) => u.id);
 }
 
-// 戦闘状態の初期化
+// 配置フェーズで開始する戦闘の初期化
+// 敵は配置済み、味方は配置キューに入る
 export function initBattle(
   playerMonsterData: MonsterSpecies[],
   enemyMonsterData: MonsterSpecies[],
@@ -155,20 +125,23 @@ export function initBattle(
   const grid = createEmptyGrid();
   placeRandomTerrain(grid);
 
-  const playerUnits = placePlayerUnits(playerMonsterData, grid);
-  const enemyUnits = placeEnemyUnits(enemyMonsterData, grid, playerUnits);
-  const allUnits = [...playerUnits, ...enemyUnits];
-  const turnOrder = calcTurnOrder(allUnits);
+  // 敵のみ配置
+  const enemyUnits = placeEnemyUnits(enemyMonsterData, grid);
+
+  // 味方は配置キューへ
+  const placementQueue: PlacementQueue[] = playerMonsterData.map(
+    (species, index) => ({ species, index }),
+  );
 
   return {
     grid,
-    units: allUnits,
-    turnOrder,
+    units: [...enemyUnits],
+    turnOrder: [],
     currentTurnIndex: 0,
     round: 1,
-    phase: 'battle',
+    phase: 'placement',
     turnPhase: 'move' as const,
-    selectedUnitId: turnOrder[0] ?? null,
+    selectedUnitId: null,
     movablePositions: [],
     attackableUnitIds: [],
     selectedSkillId: null,
@@ -178,5 +151,61 @@ export function initBattle(
     damagePopups: [],
     popupCounter: 0,
     result: 'none',
+
+    // オートバトル用
+    animation: { type: 'idle' },
+    isPaused: false,
+    battleSpeed: 1,
+
+    // 配置フェーズ用
+    placementQueue,
+    placementReady: false,
   };
+}
+
+// 味方ユニットを配置可能かチェック
+export function canPlaceAt(grid: Grid, pos: Position): boolean {
+  if (pos.col >= PLAYER_COLS) return false; // 味方は左半分のみ
+  if (grid[pos.row][pos.col].terrain === 'rock') return false;
+  if (grid[pos.row][pos.col].unitId !== null) return false;
+  return true;
+}
+
+// 残りのユニットを自動配置
+export function autoPlaceRemaining(
+  grid: Grid,
+  queue: PlacementQueue[],
+  existingUnits: BattleUnit[],
+): { grid: Grid; units: BattleUnit[]; queue: PlacementQueue[] } {
+  const newGrid = grid.map((row) => row.map((cell) => ({ ...cell })));
+  const newUnits = [...existingUnits];
+  const remainingQueue = [...queue];
+
+  while (remainingQueue.length > 0) {
+    const item = remainingQueue[0];
+    let placed = false;
+
+    // ランダムに配置先を探す
+    for (let attempt = 0; attempt < 100; attempt++) {
+      const pos: Position = {
+        col: Math.floor(Math.random() * PLAYER_COLS),
+        row: Math.floor(Math.random() * GRID_ROWS),
+      };
+
+      if (canPlaceAt(newGrid, pos) && !newUnits.some(
+        (u) => u.position.row === pos.row && u.position.col === pos.col,
+      )) {
+        const unit = createBattleUnit(item.species, 'player', pos, item.index);
+        newGrid[pos.row][pos.col].unitId = unit.id;
+        newUnits.push(unit);
+        remainingQueue.shift();
+        placed = true;
+        break;
+      }
+    }
+
+    if (!placed) break; // 配置できなかった場合は中断
+  }
+
+  return { grid: newGrid, units: newUnits, queue: remainingQueue };
 }

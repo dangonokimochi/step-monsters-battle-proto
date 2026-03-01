@@ -51,18 +51,31 @@ function posKey(pos: Position): string {
   return `${pos.row},${pos.col}`;
 }
 
+const PLAYER_COLS = Math.floor(GRID_COLS / 2);
+
 export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
   const currentUnitId = getCurrentUnitId(battleState);
+  const isPlacement = battleState.phase === 'placement';
 
   const movableSet = new Set(
     battleState.movablePositions.map((p) => posKey(p)),
   );
 
-  // 攻撃対象のユニットIDセット
   const attackableSet = new Set(battleState.attackableUnitIds);
+
+  // アニメーション中のユニットID
+  const animation = battleState.animation;
+  const attackingId = animation.type === 'attacking' ? animation.attackerId : null;
+  const damagedId = animation.type === 'damaged' ? animation.targetId : null;
+  const damagedType = animation.type === 'damaged' ? animation.resultType : null;
 
   return (
     <div className="grid-container">
+      {/* 陣地ラベル */}
+      <div className="zone-labels">
+        <span className="zone-label zone-label-player">ALLY</span>
+        <span className="zone-label zone-label-enemy">ENEMY</span>
+      </div>
       <div className="grid">
         {Array.from({ length: GRID_ROWS }, (_, row) => (
           <div className="grid-row" key={row}>
@@ -72,6 +85,17 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
               const isCurrentUnit = unit?.id === currentUnitId;
               const isMovable = movableSet.has(posKey({ row, col }));
               const isAttackable = unit ? attackableSet.has(unit.id) : false;
+              const isPlayerZone = col < PLAYER_COLS;
+              const isDivider = col === PLAYER_COLS;
+
+              // 配置フェーズ: 味方エリアの空きセルをハイライト
+              const isPlaceable = isPlacement && isPlayerZone &&
+                cell.terrain !== 'rock' && !cell.unitId &&
+                battleState.placementQueue.length > 0;
+
+              // アニメーションクラス
+              const isAttacking = unit?.id === attackingId;
+              const isDamaged = unit?.id === damagedId;
 
               const classes = [
                 'cell',
@@ -79,6 +103,9 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
                 isCurrentUnit ? 'cell-active' : '',
                 isMovable ? 'cell-movable' : '',
                 isAttackable ? 'cell-attackable' : '',
+                isPlayerZone ? 'cell-player-zone' : 'cell-enemy-zone',
+                isDivider ? 'cell-divider' : '',
+                isPlaceable ? 'cell-placeable' : '',
               ]
                 .filter(Boolean)
                 .join(' ');
@@ -93,11 +120,15 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
                   key={`${row}-${col}`}
                   onClick={() => onCellClick({ row, col })}
                 >
-                  {/* 地形タイルは常に背景として描画 */}
                   <TerrainTile terrain={cell.terrain} cellSize={64} />
                   {unit && unit.isAlive && (
                     <div
-                      className={`unit ${unit.team === 'player' ? 'unit-player' : 'unit-enemy'}`}
+                      className={[
+                        'unit',
+                        unit.team === 'player' ? 'unit-player' : 'unit-enemy',
+                        isAttacking ? 'unit-attacking' : '',
+                        isDamaged ? `unit-hit unit-hit-${damagedType}` : '',
+                      ].filter(Boolean).join(' ')}
                     >
                       <PixelSprite
                         speciesId={unit.speciesId}
@@ -117,6 +148,9 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
                   )}
                   {isMovable && !unit && (
                     <div className="movable-dot" />
+                  )}
+                  {isPlaceable && (
+                    <div className="placeable-indicator" />
                   )}
                   {cellPopups.map((popup) => (
                     <div

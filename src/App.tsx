@@ -1,15 +1,25 @@
-import { useEffect, useReducer } from 'react';
+import { useEffect, useReducer, useCallback } from 'react';
 import { BattleGrid } from './components/battle-grid';
 import { TurnOrderPanel } from './components/turn-order-panel';
 import { UnitStatusPanel } from './components/unit-status-panel';
 import { ActionPanel } from './components/action-panel';
+import { PlacementPanel } from './components/placement-panel';
 import { BattleLogPanel } from './components/battle-log';
 import { BattleResult } from './components/battle-result';
 import { playerMonsters, enemyMonsters } from './data/monsters';
 import { initBattle } from './engine/battle-setup';
 import { battleReducer } from './engine/battle-reducer';
-import type { Position } from './types';
+import type { Position, BattleSpeed } from './types';
 import './App.css';
+
+// 速度に応じたティック間隔（ms）
+function getTickInterval(speed: BattleSpeed): number {
+  switch (speed) {
+    case 1: return 1200;
+    case 2: return 600;
+    case 3: return 300;
+  }
+}
 
 function App() {
   const [battleState, dispatch] = useReducer(
@@ -18,32 +28,31 @@ function App() {
     () => initBattle(playerMonsters, enemyMonsters),
   );
 
-  useEffect(() => {
-    dispatch({ type: 'START_TURN' });
+  // === 配置フェーズのハンドラ ===
+  const handleCellClick = useCallback((position: Position) => {
+    if (battleState.phase === 'placement') {
+      dispatch({ type: 'PLACE_UNIT', position });
+    }
+  }, [battleState.phase]);
+
+  const handleAutoPlace = useCallback(() => {
+    dispatch({ type: 'AUTO_PLACE' });
   }, []);
 
-  const handleCellClick = (position: Position) => {
-    dispatch({ type: 'SELECT_CELL', position });
-  };
+  const handleStartBattle = useCallback(() => {
+    dispatch({ type: 'START_BATTLE' });
+  }, []);
 
-  const handleSkipMove = () => {
-    dispatch({ type: 'SKIP_MOVE' });
-  };
+  // === オートバトルのハンドラ ===
+  const handleTogglePause = useCallback(() => {
+    dispatch({ type: 'TOGGLE_PAUSE' });
+  }, []);
 
-  const handleSelectSkill = (skillId: string) => {
-    dispatch({ type: 'SELECT_SKILL', skillId });
-  };
-
-  const handleCancelSkill = () => {
-    dispatch({ type: 'CANCEL_SKILL' });
-  };
-
-  const handleWait = () => {
-    dispatch({ type: 'WAIT' });
-  };
+  const handleSetSpeed = useCallback((speed: BattleSpeed) => {
+    dispatch({ type: 'SET_SPEED', speed });
+  }, []);
 
   const handleRestart = () => {
-    // useReducerをリセットする代わりにページリロード
     window.location.reload();
   };
 
@@ -52,44 +61,79 @@ function App() {
     if (battleState.damagePopups.length > 0) {
       const timer = setTimeout(() => {
         dispatch({ type: 'CLEAR_POPUPS' });
-      }, 1000);
+      }, 800);
       return () => clearTimeout(timer);
     }
   }, [battleState.damagePopups]);
 
-  // 敵AIターンを自動実行
+  // オートバトルのティックループ
   useEffect(() => {
     if (battleState.phase !== 'battle') return;
-    const currentId = battleState.turnOrder[battleState.currentTurnIndex];
-    const currentUnit = battleState.units.find((u) => u.id === currentId);
-    if (currentUnit && currentUnit.team === 'enemy' && currentUnit.isAlive) {
-      const timer = setTimeout(() => {
-        dispatch({ type: 'ENEMY_AI_TURN' });
-      }, 600);
-      return () => clearTimeout(timer);
+    if (battleState.isPaused) return;
+    if (battleState.result !== 'none') return;
+
+    const interval = getTickInterval(battleState.battleSpeed);
+
+    const timer = setTimeout(() => {
+      dispatch({ type: 'AUTO_TICK' });
+    }, interval);
+
+    return () => clearTimeout(timer);
+  }, [
+    battleState.phase,
+    battleState.isPaused,
+    battleState.result,
+    battleState.currentTurnIndex,
+    battleState.round,
+    battleState.battleSpeed,
+  ]);
+
+  // バトル開始時の初期ターン
+  useEffect(() => {
+    if (battleState.phase === 'battle' && battleState.turnOrder.length > 0 && battleState.animation.type === 'idle') {
+      dispatch({ type: 'START_TURN' });
     }
-  }, [battleState.currentTurnIndex, battleState.round, battleState.phase]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [battleState.phase]);
+
+  const phaseLabel = battleState.phase === 'placement'
+    ? '配置フェーズ'
+    : battleState.phase === 'result'
+      ? '結果'
+      : `Round ${battleState.round}`;
 
   return (
     <div className="app">
       <header className="app-header">
         <h1>Step Monsters Battle</h1>
-        <span className="round-label">Round {battleState.round}</span>
+        <span className="round-label">{phaseLabel}</span>
+        {battleState.phase === 'battle' && !battleState.isPaused && (
+          <span className="auto-label">AUTO</span>
+        )}
       </header>
       <main className="app-main">
         <div className="center-area">
-          <TurnOrderPanel battleState={battleState} />
+          {battleState.phase === 'battle' && (
+            <TurnOrderPanel battleState={battleState} />
+          )}
           <BattleGrid
             battleState={battleState}
             onCellClick={handleCellClick}
           />
-          <ActionPanel
-            battleState={battleState}
-            onSkipMove={handleSkipMove}
-            onSelectSkill={handleSelectSkill}
-            onCancelSkill={handleCancelSkill}
-            onWait={handleWait}
-          />
+          {battleState.phase === 'placement' && (
+            <PlacementPanel
+              battleState={battleState}
+              onAutoPlace={handleAutoPlace}
+              onStartBattle={handleStartBattle}
+            />
+          )}
+          {battleState.phase === 'battle' && (
+            <ActionPanel
+              battleState={battleState}
+              onTogglePause={handleTogglePause}
+              onSetSpeed={handleSetSpeed}
+            />
+          )}
           <div className="status-row">
             <UnitStatusPanel
               units={battleState.units}
@@ -102,7 +146,9 @@ function App() {
               label="敵"
             />
           </div>
-          <BattleLogPanel logs={battleState.battleLog} />
+          {battleState.phase === 'battle' && (
+            <BattleLogPanel logs={battleState.battleLog} />
+          )}
         </div>
       </main>
       <BattleResult battleState={battleState} onRestart={handleRestart} />
