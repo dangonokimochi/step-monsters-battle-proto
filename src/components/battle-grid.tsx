@@ -1,4 +1,4 @@
-import type { BattleState, BattleUnit, Position, TerrainType, DamagePopup } from '../types';
+import type { BattleState, BattleUnit, Position, TerrainType, DamagePopup, SkillEffectType } from '../types';
 import { GRID_COLS, GRID_ROWS } from '../types';
 import { PixelSprite } from './pixel-sprite';
 import { TerrainTile } from './terrain-tile';
@@ -51,6 +51,13 @@ function posKey(pos: Position): string {
   return `${pos.row},${pos.col}`;
 }
 
+// 攻撃アニメーションのクラスを決定
+function getAttackAnimClass(effectType: SkillEffectType): string {
+  if (['slash', 'impact', 'claw'].includes(effectType)) return 'unit-attack-melee';
+  if (effectType === 'heal') return 'unit-attack-heal';
+  return 'unit-attack-ranged';
+}
+
 const PLAYER_COLS = Math.floor(GRID_COLS / 2);
 
 export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
@@ -63,11 +70,18 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
 
   const attackableSet = new Set(battleState.attackableUnitIds);
 
-  // アニメーション中のユニットID
+  // アニメーション情報
   const animation = battleState.animation;
   const attackingId = animation.type === 'attacking' ? animation.attackerId : null;
+  const attackSkillName = animation.type === 'attacking' ? animation.skillName : null;
+  const attackEffectType = animation.type === 'attacking' ? animation.effectType : null;
   const damagedId = animation.type === 'damaged' ? animation.targetId : null;
   const damagedType = animation.type === 'damaged' ? animation.resultType : null;
+  const damagedEffectType = animation.type === 'damaged' && animation.resultType !== 'miss'
+    ? animation.effectType : null;
+
+  // 撃破時の画面シェイク
+  const isKillShake = animation.type === 'damaged' && animation.resultType === 'kill';
 
   return (
     <div className="grid-container">
@@ -76,7 +90,7 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
         <span className="zone-label zone-label-player">ALLY</span>
         <span className="zone-label zone-label-enemy">ENEMY</span>
       </div>
-      <div className="grid">
+      <div className={`grid ${isKillShake ? 'grid-shake' : ''}`}>
         {Array.from({ length: GRID_ROWS }, (_, row) => (
           <div className="grid-row" key={row}>
             {Array.from({ length: GRID_COLS }, (_, col) => {
@@ -96,6 +110,7 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
               // アニメーションクラス
               const isAttacking = unit?.id === attackingId;
               const isDamaged = unit?.id === damagedId;
+              const isHitFlash = isDamaged && damagedType !== 'miss';
 
               const classes = [
                 'cell',
@@ -106,6 +121,7 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
                 isPlayerZone ? 'cell-player-zone' : 'cell-enemy-zone',
                 isDivider ? 'cell-divider' : '',
                 isPlaceable ? 'cell-placeable' : '',
+                isHitFlash ? 'cell-hit-flash' : '',
               ]
                 .filter(Boolean)
                 .join(' ');
@@ -126,7 +142,7 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
                       className={[
                         'unit',
                         unit.team === 'player' ? 'unit-player' : 'unit-enemy',
-                        isAttacking ? 'unit-attacking' : '',
+                        isAttacking && attackEffectType ? getAttackAnimClass(attackEffectType) : '',
                         isDamaged ? `unit-hit unit-hit-${damagedType}` : '',
                       ].filter(Boolean).join(' ')}
                     >
@@ -151,6 +167,14 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
                   )}
                   {isPlaceable && (
                     <div className="placeable-indicator" />
+                  )}
+                  {/* 技名ポップアップ（攻撃者セル） */}
+                  {isAttacking && attackSkillName && (
+                    <div className="skill-name-popup">{attackSkillName}</div>
+                  )}
+                  {/* 技エフェクト（被ダメージセル） */}
+                  {isDamaged && damagedEffectType && (
+                    <div className={`skill-effect skill-effect-${damagedEffectType}`} />
                   )}
                   {cellPopups.map((popup) => (
                     <div

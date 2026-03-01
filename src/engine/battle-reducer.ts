@@ -1,4 +1,4 @@
-import type { BattleState, BattleLog, Position, Skill, DamagePopup, BattleSpeed } from '../types';
+import type { BattleState, BattleLog, Position, Skill, DamagePopup, BattleSpeed, SkillEffectType } from '../types';
 import { calcMovablePositions } from './movement';
 import { calcTurnOrder, createBattleUnit, canPlaceAt, autoPlaceRemaining } from './battle-setup';
 import { executeAttack } from './combat';
@@ -51,6 +51,13 @@ function addPopup(
     damagePopups: [...state.damagePopups, { id, position, text, type }],
     popupCounter: id,
   };
+}
+
+// エフェクトタイプのフォールバック
+function deriveEffectType(skill: Skill): SkillEffectType {
+  if (skill.isHeal) return 'heal';
+  if (skill.range === 1) return 'impact';
+  return 'projectile';
 }
 
 // 勝敗チェック
@@ -152,6 +159,7 @@ function applySkill(
   if (!attacker || !target) return state;
 
   const result = executeAttack(attacker, target, skill);
+  const effectType = skill.effectType ?? deriveEffectType(skill);
 
   let newState = state;
 
@@ -175,7 +183,7 @@ function applySkill(
     newState = addPopup(newState, target.position, `+${result.damage}`, 'heal');
     newState = {
       ...newState,
-      animation: { type: 'damaged', targetId, amount: result.damage, resultType: 'heal' },
+      animation: { type: 'damaged', targetId, amount: result.damage, resultType: 'heal', effectType },
     };
   } else if (result.evaded) {
     newState = addLog(
@@ -187,7 +195,7 @@ function applySkill(
     newState = addPopup(newState, target.position, 'MISS', 'miss');
     newState = {
       ...newState,
-      animation: { type: 'damaged', targetId, amount: 0, resultType: 'miss' },
+      animation: { type: 'damaged', targetId, amount: 0, resultType: 'miss', effectType },
     };
   } else {
     newUnits = newUnits.map((u) => {
@@ -215,6 +223,7 @@ function applySkill(
         targetId,
         amount: result.damage,
         resultType: result.targetKilled ? 'kill' : 'damage',
+        effectType,
       },
     };
 
@@ -364,6 +373,7 @@ function handleAutoTick(state: BattleState): BattleState {
           skillName: decision.skill.name,
           skillId: decision.skill.id,
           attackTarget: decision.attackTarget,
+          effectType: decision.skill.effectType ?? deriveEffectType(decision.skill),
         } : null,
       };
     }
@@ -398,6 +408,7 @@ function handleAutoTick(state: BattleState): BattleState {
             attackerId: unit.id,
             targetId: pending.attackTarget,
             skillName: pending.skillName,
+            effectType: pending.effectType,
           },
         };
       }
@@ -421,6 +432,7 @@ function handleAutoTick(state: BattleState): BattleState {
             attackerId: unit.id,
             targetId: pending.attackTarget,
             skillName: pending.skillName,
+            effectType: pending.effectType,
           },
         };
       }

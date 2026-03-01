@@ -11,6 +11,9 @@ export interface Position {
   row: number; // 0-(GRID_ROWS-1), 上→下
 }
 
+// === 技エフェクトタイプ ===
+export type SkillEffectType = 'slash' | 'impact' | 'fire' | 'spirit' | 'projectile' | 'poison' | 'heal' | 'breath' | 'claw';
+
 // === 技 ===
 export interface Skill {
   id: string;
@@ -20,6 +23,7 @@ export interface Skill {
   defPen: number;      // 防御貫通率 0.0〜1.0
   mpCost: number;      // MP消費（0=通常攻撃）
   power: number;       // 威力倍率
+  effectType?: SkillEffectType; // エフェクトタイプ
   isHeal?: boolean;    // 回復技フラグ
   healAmount?: number; // 回復量（固定値）
 }
@@ -103,8 +107,8 @@ export type AnimationPhase =
   | { type: 'idle' }
   | { type: 'turn_start'; unitId: string }
   | { type: 'moving'; unitId: string; from: Position; to: Position }
-  | { type: 'attacking'; attackerId: string; targetId: string; skillName: string }
-  | { type: 'damaged'; targetId: string; amount: number; resultType: 'damage' | 'heal' | 'miss' | 'kill' };
+  | { type: 'attacking'; attackerId: string; targetId: string; skillName: string; effectType: SkillEffectType }
+  | { type: 'damaged'; targetId: string; amount: number; resultType: 'damage' | 'heal' | 'miss' | 'kill'; effectType: SkillEffectType };
 
 // === 戦闘ログ ===
 export interface BattleLog {
@@ -137,6 +141,7 @@ export interface PendingAction {
   skillName: string;
   skillId: string;
   attackTarget: string; // ユニットID（空文字 = 攻撃なし）
+  effectType: SkillEffectType;
 }
 
 // === 戦闘状態 ===
