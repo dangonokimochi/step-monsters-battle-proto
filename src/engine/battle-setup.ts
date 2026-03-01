@@ -7,7 +7,7 @@ import type {
   Position,
   Team,
 } from '../types';
-import { GRID_SIZE } from '../types';
+import { GRID_COLS, GRID_ROWS } from '../types';
 
 // モンスター種族データからBattleUnitを生成
 export function createBattleUnit(
@@ -41,9 +41,9 @@ export function createBattleUnit(
 // 空のグリッドを生成
 export function createEmptyGrid(): Grid {
   const grid: Grid = [];
-  for (let row = 0; row < GRID_SIZE; row++) {
+  for (let row = 0; row < GRID_ROWS; row++) {
     const rowCells: GridCell[] = [];
-    for (let col = 0; col < GRID_SIZE; col++) {
+    for (let col = 0; col < GRID_COLS; col++) {
       rowCells.push({ terrain: 'plain', unitId: null });
     }
     grid.push(rowCells);
@@ -51,15 +51,15 @@ export function createEmptyGrid(): Grid {
   return grid;
 }
 
-// ランダム地形配置（仕様: 8〜12マス程度に地形を配置）
+// ランダム地形配置（6×4盤面: 3〜5マス程度に地形を配置）
 function placeRandomTerrain(grid: Grid): void {
   const terrainTypes: Array<GridCell['terrain']> = ['rock', 'water', 'bush', 'hill'];
-  const terrainCount = 8 + Math.floor(Math.random() * 5); // 8〜12
+  const terrainCount = 3 + Math.floor(Math.random() * 3); // 3〜5
 
   let placed = 0;
   while (placed < terrainCount) {
-    const row = Math.floor(Math.random() * GRID_SIZE);
-    const col = Math.floor(Math.random() * GRID_SIZE);
+    const row = Math.floor(Math.random() * GRID_ROWS);
+    const col = Math.floor(Math.random() * GRID_COLS);
 
     // 既に地形がある場合はスキップ
     if (grid[row][col].terrain !== 'plain') continue;
@@ -70,7 +70,9 @@ function placeRandomTerrain(grid: Grid): void {
   }
 }
 
-// 味方の初期配置（左半分 col 0-3 にランダム配置）
+// 味方の初期配置（左側 col 0〜2 にランダム配置）
+const PLAYER_COLS = Math.floor(GRID_COLS / 2); // 3列
+
 function placePlayerUnits(
   monsters: MonsterSpecies[],
   grid: Grid,
@@ -82,8 +84,8 @@ function placePlayerUnits(
     let pos: Position;
     do {
       pos = {
-        col: Math.floor(Math.random() * 4), // col 0-3
-        row: Math.floor(Math.random() * GRID_SIZE),
+        col: Math.floor(Math.random() * PLAYER_COLS), // col 0〜2
+        row: Math.floor(Math.random() * GRID_ROWS),
       };
     } while (
       usedPositions.has(`${pos.row},${pos.col}`) ||
@@ -99,7 +101,7 @@ function placePlayerUnits(
   return units;
 }
 
-// 敵の初期配置（右半分 col 4-7 にランダム配置）
+// 敵の初期配置（右側 col 3〜5 にランダム配置）
 function placeEnemyUnits(
   monsters: MonsterSpecies[],
   grid: Grid,
@@ -114,8 +116,8 @@ function placeEnemyUnits(
     let pos: Position;
     do {
       pos = {
-        col: 4 + Math.floor(Math.random() * 4), // col 4-7
-        row: Math.floor(Math.random() * GRID_SIZE),
+        col: PLAYER_COLS + Math.floor(Math.random() * PLAYER_COLS), // col 3〜5
+        row: Math.floor(Math.random() * GRID_ROWS),
       };
     } while (
       usedPositions.has(`${pos.row},${pos.col}`) ||

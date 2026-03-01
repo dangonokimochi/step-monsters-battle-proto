@@ -252,8 +252,8 @@
 /* モバイル: セルを画面幅に合わせて縮小 */
 @media (max-width: 900px) {
   .cell {
-    width: calc((100vw - 24px) / 8);
-    height: calc((100vw - 24px) / 8);
+    width: calc((100vw - 24px) / 6);
+    height: calc((100vw - 24px) / 6);
   }
 
   .unit-sprite {

@@ -1,5 +1,5 @@
 import type { BattleState, BattleUnit, Position, TerrainType, DamagePopup } from '../types';
-import { GRID_SIZE } from '../types';
+import { GRID_COLS, GRID_ROWS } from '../types';
 import { PixelSprite } from './pixel-sprite';
 import { TerrainTile } from './terrain-tile';
 import './battle-grid.css';
@@ -64,9 +64,9 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
   return (
     <div className="grid-container">
       <div className="grid">
-        {Array.from({ length: GRID_SIZE }, (_, row) => (
+        {Array.from({ length: GRID_ROWS }, (_, row) => (
           <div className="grid-row" key={row}>
-            {Array.from({ length: GRID_SIZE }, (_, col) => {
+            {Array.from({ length: GRID_COLS }, (_, col) => {
               const cell = battleState.grid[row][col];
               const unit = findUnit(battleState.units, cell.unitId);
               const isCurrentUnit = unit?.id === currentUnitId;

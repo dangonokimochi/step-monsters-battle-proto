@@ -7,8 +7,8 @@ export interface TerrainCell {
 
 // === 座標 ===
 export interface Position {
-  col: number; // 0-7, 左→右
-  row: number; // 0-7, 上→下
+  col: number; // 0-(GRID_COLS-1), 左→右
+  row: number; // 0-(GRID_ROWS-1), 上→下
 }
 
 // === 技 ===
@@ -85,7 +85,8 @@ export interface BattleUnit {
 }
 
 // === 盤面 ===
-export const GRID_SIZE = 8;
+export const GRID_COLS = 6; // 各陣営3列 × 2
+export const GRID_ROWS = 4; // 4行
 
 export interface GridCell {
   terrain: TerrainType;
