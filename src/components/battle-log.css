@@ -16,7 +16,7 @@
 }
 
 .log-list {
-  max-height: 240px;
+  max-height: 100px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -26,8 +26,8 @@
 }
 
 .log-entry {
-  font-size: 12px;
-  padding: 2px 4px;
+  font-size: 11px;
+  padding: 1px 4px;
   border-radius: 2px;
   display: flex;
   align-items: center;

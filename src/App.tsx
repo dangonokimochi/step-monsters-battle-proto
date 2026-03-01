@@ -9,16 +9,20 @@ import { BattleResult } from './components/battle-result';
 import { playerMonsters, enemyMonsters } from './data/monsters';
 import { initBattle } from './engine/battle-setup';
 import { battleReducer } from './engine/battle-reducer';
-import type { Position, BattleSpeed } from './types';
+import type { Position, BattleSpeed, AnimationPhase } from './types';
 import './App.css';
 
-// 速度に応じたティック間隔（ms）
-function getTickInterval(speed: BattleSpeed): number {
-  switch (speed) {
-    case 1: return 1200;
-    case 2: return 600;
-    case 3: return 300;
-  }
+// アニメーション状態に応じたステップ間隔（ms）
+function getStepDelay(animType: AnimationPhase['type'], speed: BattleSpeed): number {
+  const base = {
+    idle: 200,        // ターン間の短い間
+    turn_start: 400,  // ユニットハイライト表示時間
+    moving: 350,      // 移動アニメーション時間
+    attacking: 400,   // 攻撃アニメーション時間
+    damaged: 600,     // ダメージ表示時間
+  }[animType];
+
+  return Math.max(80, Math.round(base / speed));
 }
 
 function App() {
@@ -56,45 +60,27 @@ function App() {
     window.location.reload();
   };
 
-  // ポップアップの自動クリア
-  useEffect(() => {
-    if (battleState.damagePopups.length > 0) {
-      const timer = setTimeout(() => {
-        dispatch({ type: 'CLEAR_POPUPS' });
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [battleState.damagePopups]);
-
-  // オートバトルのティックループ
+  // オートバトルのステップ式ティックループ
+  // アニメーション状態が変わるたびに次のステップをスケジュール
   useEffect(() => {
     if (battleState.phase !== 'battle') return;
     if (battleState.isPaused) return;
     if (battleState.result !== 'none') return;
 
-    const interval = getTickInterval(battleState.battleSpeed);
+    const delay = getStepDelay(battleState.animation.type, battleState.battleSpeed);
 
     const timer = setTimeout(() => {
       dispatch({ type: 'AUTO_TICK' });
-    }, interval);
+    }, delay);
 
     return () => clearTimeout(timer);
   }, [
     battleState.phase,
     battleState.isPaused,
     battleState.result,
-    battleState.currentTurnIndex,
-    battleState.round,
+    battleState.animation,
     battleState.battleSpeed,
   ]);
-
-  // バトル開始時の初期ターン
-  useEffect(() => {
-    if (battleState.phase === 'battle' && battleState.turnOrder.length > 0 && battleState.animation.type === 'idle') {
-      dispatch({ type: 'START_TURN' });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [battleState.phase]);
 
   const phaseLabel = battleState.phase === 'placement'
     ? '配置フェーズ'
@@ -105,7 +91,7 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Step Monsters Battle</h1>
+        <h1>Step Monsters</h1>
         <span className="round-label">{phaseLabel}</span>
         {battleState.phase === 'battle' && !battleState.isPaused && (
           <span className="auto-label">AUTO</span>

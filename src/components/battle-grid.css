@@ -8,7 +8,7 @@
 .zone-labels {
   display: flex;
   width: 100%;
-  max-width: calc(64px * 6 + 4px);
+  max-width: calc(52px * 6 + 4px);
   margin-bottom: 4px;
 }
 
@@ -48,8 +48,8 @@
 }
 
 .cell {
-  width: 64px;
-  height: 64px;
+  width: 52px;
+  height: 52px;
   border: 1px solid #555;
   display: flex;
   align-items: center;
@@ -222,11 +222,11 @@
 .unit-enemy::before {
   content: '';
   position: absolute;
-  bottom: 10px;
+  bottom: 6px;
   left: 50%;
   transform: translateX(-50%);
-  width: 36px;
-  height: 10px;
+  width: 28px;
+  height: 8px;
   border-radius: 50%;
   z-index: 0;
 }
@@ -328,8 +328,8 @@
 
 /* HPバー */
 .unit-hp-bar {
-  width: 40px;
-  height: 4px;
+  width: 32px;
+  height: 3px;
   background: #222;
   border-radius: 2px;
   overflow: hidden;
@@ -344,10 +344,10 @@
 /* ダメージポップアップ */
 .damage-popup {
   position: absolute;
-  top: 0;
+  top: -2px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 18px;
+  font-size: 14px;
   font-weight: bold;
   pointer-events: none;
   z-index: 10;

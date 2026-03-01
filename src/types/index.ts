@@ -131,6 +131,14 @@ export interface PlacementQueue {
 // === バトル速度 ===
 export type BattleSpeed = 1 | 2 | 3;
 
+// === AI判断の保持（アニメーション間で引き継ぐ） ===
+export interface PendingAction {
+  moveTarget: Position | null;
+  skillName: string;
+  skillId: string;
+  attackTarget: string; // ユニットID（空文字 = 攻撃なし）
+}
+
 // === 戦闘状態 ===
 export interface BattleState {
   grid: Grid;
@@ -153,6 +161,7 @@ export interface BattleState {
 
   // オートバトル用
   animation: AnimationPhase;
+  pendingAction: PendingAction | null;
   isPaused: boolean;
   battleSpeed: BattleSpeed;
 

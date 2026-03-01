@@ -120,7 +120,7 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
                   key={`${row}-${col}`}
                   onClick={() => onCellClick({ row, col })}
                 >
-                  <TerrainTile terrain={cell.terrain} cellSize={64} />
+                  <TerrainTile terrain={cell.terrain} cellSize={52} />
                   {unit && unit.isAlive && (
                     <div
                       className={[
@@ -132,7 +132,7 @@ export function BattleGrid({ battleState, onCellClick }: BattleGridProps) {
                     >
                       <PixelSprite
                         speciesId={unit.speciesId}
-                        size={40}
+                        size={32}
                         flip={unit.team === 'enemy'}
                         className="unit-sprite"
                       />

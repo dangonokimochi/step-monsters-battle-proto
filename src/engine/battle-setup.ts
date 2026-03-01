@@ -154,6 +154,7 @@ export function initBattle(
 
     // オートバトル用
     animation: { type: 'idle' },
+    pendingAction: null,
     isPaused: false,
     battleSpeed: 1,
 

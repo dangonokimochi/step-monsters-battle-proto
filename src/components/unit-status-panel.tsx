@@ -27,7 +27,7 @@ export function UnitStatusPanel({ units, team, label }: UnitStatusPanelProps) {
             <div className="status-header">
               <PixelSprite
                 speciesId={unit.speciesId}
-                size={24}
+                size={20}
                 flip={unit.team === 'enemy'}
                 className="status-sprite"
               />

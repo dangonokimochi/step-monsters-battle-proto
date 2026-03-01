@@ -11,18 +11,9 @@ export type BattleAction =
   | { type: 'REMOVE_UNIT'; position: Position }
   | { type: 'START_BATTLE' }
   | { type: 'AUTO_TICK' }
-  | { type: 'CLEAR_ANIMATION' }
   | { type: 'SET_SPEED'; speed: BattleSpeed }
   | { type: 'TOGGLE_PAUSE' }
-  | { type: 'START_TURN' }
-  | { type: 'CLEAR_POPUPS' }
-  // 後方互換性（使わないが型エラー防止）
-  | { type: 'SELECT_CELL'; position: Position }
-  | { type: 'SKIP_MOVE' }
-  | { type: 'SELECT_SKILL'; skillId: string }
-  | { type: 'CANCEL_SKILL' }
-  | { type: 'WAIT' }
-  | { type: 'ENEMY_AI_TURN' };
+  | { type: 'CLEAR_POPUPS' };
 
 function findUnitById(state: BattleState, id: string | null) {
   if (!id) return undefined;
@@ -80,29 +71,26 @@ function checkResult(state: BattleState): BattleState {
   return state;
 }
 
-// ターン開始処理
-function startTurn(state: BattleState): BattleState {
+// ターン準備（アニメーションは設定しない）
+function prepareTurn(state: BattleState): BattleState {
   const unit = getCurrentUnit(state);
   if (!unit || !unit.isAlive) {
-    return advanceTurn(state);
+    return advanceTurnRaw(state);
   }
-
-  const movable = calcMovablePositions(unit, state.grid);
 
   return {
     ...state,
     turnPhase: 'move',
     selectedUnitId: unit.id,
-    movablePositions: movable,
+    movablePositions: calcMovablePositions(unit, state.grid),
     attackableUnitIds: [],
     selectedSkillId: null,
     hasMoved: false,
-    animation: { type: 'turn_start', unitId: unit.id },
   };
 }
 
-// 次のターンへ
-function advanceTurn(state: BattleState): BattleState {
+// 次のターンへ（アニメーションは設定しない）
+function advanceTurnRaw(state: BattleState): BattleState {
   const checked = checkResult(state);
   if (checked.phase === 'result') return checked;
 
@@ -113,7 +101,7 @@ function advanceTurn(state: BattleState): BattleState {
     nextIndex = 0;
     nextRound += 1;
     const newOrder = calcTurnOrder(state.units);
-    return startTurn({
+    return prepareTurn({
       ...state,
       turnOrder: newOrder,
       currentTurnIndex: 0,
@@ -121,13 +109,13 @@ function advanceTurn(state: BattleState): BattleState {
     });
   }
 
-  return startTurn({
+  return prepareTurn({
     ...state,
     currentTurnIndex: nextIndex,
   });
 }
 
-// 移動を実行
+// 移動を実行（アニメーション設定なし）
 function moveUnit(state: BattleState, target: Position): BattleState {
   const unit = getCurrentUnit(state);
   if (!unit) return state;
@@ -136,7 +124,6 @@ function moveUnit(state: BattleState, target: Position): BattleState {
   newGrid[unit.position.row][unit.position.col].unitId = null;
   newGrid[target.row][target.col].unitId = unit.id;
 
-  const from = { ...unit.position };
   const newUnits = state.units.map((u) =>
     u.id === unit.id ? { ...u, position: { ...target } } : u,
   );
@@ -150,12 +137,11 @@ function moveUnit(state: BattleState, target: Position): BattleState {
     attackableUnitIds: [],
     selectedSkillId: null,
     hasMoved: true,
-    animation: { type: 'moving', unitId: unit.id, from, to: target },
   };
 }
 
-// スキル実行（ダメージ適用）
-function executeSkill(
+// スキル実行（ダメージ適用のみ、ターン進行しない）
+function applySkill(
   state: BattleState,
   attackerId: string,
   targetId: string,
@@ -248,12 +234,11 @@ function executeSkill(
     }
   }
 
-  return advanceTurn({
+  return {
     ...newState,
-    units: newState.units,
     attackableUnitIds: [],
     selectedSkillId: null,
-  });
+  };
 }
 
 // === 配置フェーズのハンドラ ===
@@ -320,68 +305,158 @@ function handleStartBattle(state: BattleState): BattleState {
 
   const turnOrder = calcTurnOrder(state.units);
 
-  const newState: BattleState = {
+  const prepared = prepareTurn({
     ...state,
     phase: 'battle',
     turnOrder,
     currentTurnIndex: 0,
     selectedUnitId: turnOrder[0] ?? null,
-    animation: { type: 'idle' },
-  };
+  });
 
-  return startTurn(newState);
+  return {
+    ...prepared,
+    animation: { type: 'idle' },
+    pendingAction: null,
+  };
 }
 
-// === オートバトルのティック ===
-// 1ティック = 1ユニットの行動を完了
+// === オートバトルのステップ式ティック ===
+// アニメーション状態に応じて1ステップずつ処理
+//
+// idle → turn_start（AI判断＋保存）
+// turn_start → moving（移動あり）/ attacking（攻撃のみ）/ idle（待機）
+// moving → attacking（攻撃あり）/ idle（移動のみ）
+// attacking → damaged（スキル実行）
+// damaged → idle（次のターンへ）
+
 function handleAutoTick(state: BattleState): BattleState {
   if (state.phase !== 'battle') return state;
   if (state.isPaused) return state;
 
-  const unit = getCurrentUnit(state);
-  if (!unit || !unit.isAlive) {
-    return advanceTurn(state);
+  const anim = state.animation;
+
+  switch (anim.type) {
+    case 'idle': {
+      // ポップアップをクリアして新ターン開始
+      const cleaned = { ...state, damagePopups: [] as DamagePopup[] };
+      const unit = getCurrentUnit(cleaned);
+      if (!unit || !unit.isAlive) {
+        const advanced = advanceTurnRaw(cleaned);
+        if (advanced.phase === 'result') return advanced;
+        const nextUnit = getCurrentUnit(advanced);
+        if (!nextUnit) return advanced;
+        return {
+          ...advanced,
+          animation: { type: 'idle' },
+          pendingAction: null,
+        };
+      }
+
+      // AI判断を計算して保存
+      const decision = decideAction(unit, cleaned);
+
+      return {
+        ...cleaned,
+        animation: { type: 'turn_start', unitId: unit.id },
+        selectedUnitId: unit.id,
+        pendingAction: decision ? {
+          moveTarget: decision.moveTarget,
+          skillName: decision.skill.name,
+          skillId: decision.skill.id,
+          attackTarget: decision.attackTarget,
+        } : null,
+      };
+    }
+
+    case 'turn_start': {
+      const pending = state.pendingAction;
+      const unit = getCurrentUnit(state);
+
+      if (!pending || !unit) {
+        // 行動不能 → 待機してターン進行
+        const logged = unit ? addLog(state, `${unit.name}は待機した`, 'info', unit.team) : state;
+        const advanced = advanceTurnRaw(logged);
+        return { ...advanced, animation: { type: 'idle' }, pendingAction: null };
+      }
+
+      if (pending.moveTarget) {
+        // 移動あり → moving へ
+        const from = { ...unit.position };
+        const moved = moveUnit(state, pending.moveTarget);
+        return {
+          ...moved,
+          animation: { type: 'moving', unitId: unit.id, from, to: pending.moveTarget },
+        };
+      }
+
+      if (pending.attackTarget) {
+        // 移動なし・攻撃あり → attacking へ
+        return {
+          ...state,
+          animation: {
+            type: 'attacking',
+            attackerId: unit.id,
+            targetId: pending.attackTarget,
+            skillName: pending.skillName,
+          },
+        };
+      }
+
+      // 移動も攻撃もない（到達不能ケース）
+      const logged = addLog(state, `${unit.name}は待機した`, 'info', unit.team);
+      const advanced = advanceTurnRaw(logged);
+      return { ...advanced, animation: { type: 'idle' }, pendingAction: null };
+    }
+
+    case 'moving': {
+      const pending = state.pendingAction;
+      const unit = getCurrentUnit(state);
+
+      if (pending && pending.attackTarget && unit) {
+        // 移動後に攻撃 → attacking へ
+        return {
+          ...state,
+          animation: {
+            type: 'attacking',
+            attackerId: unit.id,
+            targetId: pending.attackTarget,
+            skillName: pending.skillName,
+          },
+        };
+      }
+
+      // 移動のみ
+      const logged = unit ? addLog(state, `${unit.name}は移動した`, 'info', unit.team) : state;
+      const advanced = advanceTurnRaw(logged);
+      return { ...advanced, animation: { type: 'idle' }, pendingAction: null };
+    }
+
+    case 'attacking': {
+      // スキル実行 → damaged へ（applySkill内でdamagedアニメーションがセットされる）
+      const pending = state.pendingAction;
+      const unit = getCurrentUnit(state);
+      if (!pending || !unit) {
+        const advanced = advanceTurnRaw(state);
+        return { ...advanced, animation: { type: 'idle' }, pendingAction: null };
+      }
+
+      const skill = unit.skills.find((s) => s.id === pending.skillId);
+      if (!skill) {
+        const advanced = advanceTurnRaw(state);
+        return { ...advanced, animation: { type: 'idle' }, pendingAction: null };
+      }
+
+      return applySkill(state, unit.id, pending.attackTarget, skill);
+    }
+
+    case 'damaged': {
+      // ダメージ表示完了 → 次のターンへ
+      const advanced = advanceTurnRaw(state);
+      return { ...advanced, animation: { type: 'idle' }, pendingAction: null };
+    }
   }
 
-  // 両チーム共通のAI判断
-  const decision = decideAction(unit, state);
-
-  if (!decision) {
-    const logged = addLog(state, `${unit.name}は待機した`, 'info', unit.team);
-    return advanceTurn(logged);
-  }
-
-  let currentState = state;
-
-  // 移動
-  if (decision.moveTarget) {
-    currentState = moveUnit(currentState, decision.moveTarget);
-  }
-
-  // 攻撃対象がいない場合（移動のみ）
-  if (!decision.attackTarget) {
-    const logged = addLog(currentState, `${unit.name}は移動した`, 'info', unit.team);
-    return advanceTurn(logged);
-  }
-
-  // 攻撃アニメーション情報をセット
-  currentState = {
-    ...currentState,
-    animation: {
-      type: 'attacking',
-      attackerId: unit.id,
-      targetId: decision.attackTarget,
-      skillName: decision.skill.name,
-    },
-  };
-
-  // 攻撃
-  return executeSkill(
-    currentState,
-    unit.id,
-    decision.attackTarget,
-    decision.skill,
-  );
+  return state;
 }
 
 export function battleReducer(
@@ -402,27 +477,14 @@ export function battleReducer(
     // オートバトル
     case 'AUTO_TICK':
       return handleAutoTick(state);
-    case 'CLEAR_ANIMATION':
-      return { ...state, animation: { type: 'idle' } };
     case 'SET_SPEED':
       return { ...state, battleSpeed: action.speed };
     case 'TOGGLE_PAUSE':
       return { ...state, isPaused: !state.isPaused };
 
     // 共通
-    case 'START_TURN':
-      return startTurn(state);
     case 'CLEAR_POPUPS':
       return { ...state, damagePopups: [] };
-
-    // 後方互換性（何もしない）
-    case 'SELECT_CELL':
-    case 'SKIP_MOVE':
-    case 'SELECT_SKILL':
-    case 'CANCEL_SKILL':
-    case 'WAIT':
-    case 'ENEMY_AI_TURN':
-      return state;
 
     default:
       return state;

@@ -27,7 +27,7 @@ export function ActionPanel({
           <div className="action-unit-display">
             <PixelSprite
               speciesId={currentUnit.speciesId}
-              size={28}
+              size={22}
               flip={currentUnit.team === 'enemy'}
               className="action-unit-sprite"
             />

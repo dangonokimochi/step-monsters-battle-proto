@@ -2,12 +2,12 @@
   background: #2a2a2a;
   border: 1px solid #555;
   border-radius: 4px;
-  padding: 12px;
+  padding: 6px 8px;
 }
 
 .status-title {
-  margin: 0 0 8px 0;
-  font-size: 14px;
+  margin: 0 0 4px 0;
+  font-size: 12px;
   text-align: center;
 }
 
@@ -22,13 +22,13 @@
 .status-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .status-card {
   background: #333;
-  border-radius: 4px;
-  padding: 8px;
+  border-radius: 3px;
+  padding: 4px 6px;
 }
 
 .status-dead {
@@ -38,8 +38,8 @@
 .status-header {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
+  gap: 4px;
+  margin-bottom: 2px;
 }
 
 .status-sprite {
@@ -48,7 +48,7 @@
 }
 
 .status-name {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
   color: #eee;
 }
@@ -56,24 +56,24 @@
 .status-bars {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .bar-row {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .bar-label {
-  font-size: 10px;
+  font-size: 9px;
   color: #999;
-  width: 20px;
+  width: 18px;
 }
 
 .bar-track {
   flex: 1;
-  height: 6px;
+  height: 5px;
   background: #222;
   border-radius: 3px;
   overflow: hidden;
@@ -93,53 +93,44 @@
 }
 
 .bar-value {
-  font-size: 10px;
+  font-size: 9px;
   color: #aaa;
-  min-width: 50px;
+  min-width: 40px;
   text-align: right;
 }
 
+/* ステータスは非表示（コンパクト化） */
 .status-stats {
-  font-size: 10px;
-  color: #888;
-  margin-top: 4px;
+  display: none;
 }
 
-/* モバイル: ステータスパネルを横並びコンパクトに */
+/* モバイル */
 @media (max-width: 900px) {
   .status-panel {
-    padding: 8px;
+    padding: 4px 6px;
     flex: 1;
-    min-width: 140px;
+    min-width: 120px;
   }
 
   .status-list {
-    gap: 4px;
+    gap: 3px;
   }
 
   .status-card {
-    padding: 4px 6px;
-  }
-
-  .status-header {
-    margin-bottom: 2px;
+    padding: 3px 4px;
   }
 
   .status-sprite {
-    width: 20px !important;
-    height: 20px !important;
+    width: 16px !important;
+    height: 16px !important;
   }
 
   .status-name {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .bar-value {
-    min-width: 40px;
-    font-size: 9px;
-  }
-
-  .status-stats {
-    display: none;
+    min-width: 30px;
+    font-size: 8px;
   }
 }
